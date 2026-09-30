@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, LogOut } from "lucide-react";
 import { useSession } from "../context/SessionContext";
 import { health } from "../api/client";
 import Badge from "./Badge";
@@ -7,7 +7,7 @@ import Badge from "./Badge";
 const ROLE_LABEL = { admin: "Administrador", developer: "Desarrollador", viewer: "Solo lectura" };
 
 export default function TopBar({ title, description }) {
-  const { users, currentUser, switchUser } = useSession();
+  const { users, currentUser, switchUser, logout } = useSession();
   const [open, setOpen] = useState(false);
   const [ollamaUp, setOllamaUp] = useState(null);
   const ref = useRef(null);
@@ -71,6 +71,16 @@ export default function TopBar({ title, description }) {
                   </span>
                 </button>
               ))}
+              <div className="my-1 h-px bg-mist-100" />
+              <button
+                onClick={() => { setOpen(false); logout(); }}
+                className="focus-ring flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] font-medium text-red-600 hover:bg-red-50"
+              >
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-red-50">
+                  <LogOut size={13} />
+                </span>
+                Cerrar sesión
+              </button>
             </div>
           )}
         </div>

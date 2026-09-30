@@ -53,3 +53,78 @@ body {
 .scrollbar-thin {
   scrollbar-width: thin;
 }
+
+/* ---- Login: ambient brand panel ---- */
+.brand-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(ellipse 80% 65% at 50% 40%, black 40%, transparent 90%);
+}
+
+.blob-field {
+  transform: translate(calc(var(--mx, 0) * -28px), calc(var(--my, 0) * -28px));
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(64px);
+  opacity: 0.55;
+}
+
+.blob-1 {
+  width: 26rem;
+  height: 26rem;
+  left: -6rem;
+  top: -4rem;
+  background: radial-gradient(circle at 30% 30%, #8288d6, transparent 70%);
+  animation: drift1 16s ease-in-out infinite;
+}
+
+.blob-2 {
+  width: 22rem;
+  height: 22rem;
+  right: -5rem;
+  bottom: -3rem;
+  background: radial-gradient(circle at 60% 60%, #454da0, transparent 70%);
+  animation: drift2 20s ease-in-out infinite;
+}
+
+.blob-3 {
+  width: 16rem;
+  height: 16rem;
+  left: 45%;
+  top: 55%;
+  background: radial-gradient(circle at 50% 50%, #5f68c3, transparent 70%);
+  animation: drift3 13s ease-in-out infinite;
+}
+
+@keyframes drift1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, 30px) scale(1.08); }
+}
+@keyframes drift2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-30px, -35px) scale(1.1); }
+}
+@keyframes drift3 {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) translate(25px, -20px) scale(1.15); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer-text {
+  background: linear-gradient(90deg, #ffffff 0%, #c7c9f0 25%, #ffffff 50%, #c7c9f0 75%, #ffffff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}

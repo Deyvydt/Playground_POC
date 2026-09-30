@@ -15,6 +15,9 @@ export function SessionProvider({ children }) {
     const stored = localStorage.getItem("tcs-playground-user");
     return stored ? JSON.parse(stored) : FALLBACK_USERS[0];
   });
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    () => sessionStorage.getItem("tcs-playground-auth") === "1"
+  );
 
   useEffect(() => {
     listUsers()
@@ -29,6 +32,17 @@ export function SessionProvider({ children }) {
     localStorage.setItem("tcs-playground-user", JSON.stringify(user));
   };
 
+  const login = (user) => {
+    switchUser(user);
+    setIsAuthenticated(true);
+    sessionStorage.setItem("tcs-playground-auth", "1");
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    sessionStorage.removeItem("tcs-playground-auth");
+  };
+
   const can = (action) => {
     const role = currentUser?.role;
     if (role === "admin") return true;
@@ -37,7 +51,9 @@ export function SessionProvider({ children }) {
   };
 
   return (
-    <SessionContext.Provider value={{ users, currentUser, switchUser, can }}>
+    <SessionContext.Provider
+      value={{ users, currentUser, switchUser, can, isAuthenticated, login, logout }}
+    >
       {children}
     </SessionContext.Provider>
   );
