@@ -5,7 +5,7 @@ repositorio. Léela antes de modificar código.
 
 ## Qué es este repositorio
 
-POC de "TCS Agent Playground": una plataforma interna para crear, probar y
+"Agent Playground" de TCS: una plataforma interna para crear, probar y
 administrar agentes de IA con modelos locales (Ollama). Ver
 `specs/001-agent-playground/spec.md` para el alcance funcional completo y
 `.specify/memory/constitution.md` para los principios no negociables del
@@ -44,7 +44,7 @@ Ver `specs/001-agent-playground/quickstart.md` para el paso a paso completo.
 Resumen:
 ```bash
 # Backend
-cd backend && pip install -r requirements.txt && uvicorn app.main:app --reload --port 8000
+cd backend && python -m venv .venv && .venv/bin/pip install -r requirements.txt && .venv/bin/uvicorn app.main:app --reload --port 8000
 # Frontend
 cd frontend && npm install && npm run dev
 ```
@@ -58,9 +58,17 @@ descargados (este último es obligatorio para que el RAG funcione).
   comentarios explicativos de "qué hace" el código — solo el porqué cuando no es
   obvio (ver estilo ya usado en el repo).
 - **Frontend**: React funcional + hooks, sin gestor de estado global más allá de
-  `SessionContext` (RBAC simulado). Tailwind con los tokens definidos en
-  `tailwind.config.js` (`ink-*`, `mist-*`, `tcs-*`) — no introducir colores
-  sueltos fuera de esa paleta.
+  `SessionContext` (sesión y permisos) y `UIContext` (toasts y confirmaciones).
+  Tailwind con los tokens de `tailwind.config.js` (`ink-*`, `mist-*`,
+  `accent-*`) y las clases de `index.css` (`btn-*`, `input`, `card`, `label`) —
+  no introducir colores sueltos fuera de esa paleta. Íconos siempre de
+  `lucide-react` (nunca emojis); toda acción de solo ícono lleva `Tooltip`.
+- **Textos de la interfaz**: sin referencias a "POC", "prototipo", metodología o
+  detalles de implementación (RAG, embeddings, nombres de librerías). La UI se
+  presenta como producto final; ese contexto vive en la documentación.
+- **Seguridad**: toda ruta nueva de `/api` debe depender de `get_current_user` o
+  `require("<permiso>")` (`app/security.py`). Los permisos por rol están en
+  `PERMISSIONS`; el frontend los consulta con `can()`.
 - **Idioma**: toda la interfaz y los textos de cara al usuario están en español
   (audiencia interna de TCS). El código (nombres de variables/funciones) está en
   inglés salvo los nombres de herramientas (`calculadora`, `fecha_actual`, etc.)
@@ -75,9 +83,9 @@ descargados (este último es obligatorio para que el RAG funcione).
   adaptador equivalente a `ollama_client.py` — rompe el Principio II.
 - No agregar un paso del agente que no quede reflejado en la `trace` devuelta —
   rompe el Principio III (Observabilidad).
-- No introducir autenticación real, multi-tenant o un vectorstore dedicado sin
-  antes actualizar `spec.md`/`plan.md` — está explícitamente fuera de alcance de
-  esta iteración (Principio V).
+- No introducir SSO, multi-tenant o un vectorstore dedicado sin antes
+  actualizar `spec.md`/`plan.md` — está explícitamente fuera de alcance de esta
+  iteración (Principio V).
 
 ## Testing manual
 

@@ -1,252 +1,276 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Check, Loader2, Bot, DollarSign, ShieldCheck, ArrowRight } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, Check, Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, Activity, Coins } from "lucide-react";
+import NetworkCanvas from "../components/NetworkCanvas";
+import Logo from "../components/Logo";
+import Avatar from "../components/Avatar";
 import { useSession } from "../context/SessionContext";
+import { errorMessage } from "../api/client";
 
-const ROLE_LABEL = { admin: "Administrador", developer: "Desarrollador", viewer: "Solo lectura" };
+const HIGHLIGHTS = [
+  { icon: ShieldCheck, label: "Tus datos no salen de la organización" },
+  { icon: Activity, label: "Cada respuesta, trazable paso a paso" },
+  { icon: Coins, label: "Consumo de tokens bajo control" },
+];
 
-const STATS = [
-  { icon: ShieldCheck, label: "Datos 100% locales" },
-  { icon: DollarSign, label: "$0 costo marginal" },
-  { icon: Bot, label: "4 agentes activos" },
+// Accesos rápidos a las cuentas habituales del equipo.
+const RECENT_ACCOUNTS = [
+  { name: "Ana Ríos", email: "ana.rios@tcs.com", role: "admin" },
+  { name: "Carlos Vega", email: "carlos.vega@tcs.com", role: "developer" },
+  { name: "Lucía Soto", email: "lucia.soto@tcs.com", role: "viewer" },
 ];
 
 function BrandPanel() {
-  const panelRef = useRef(null);
-
-  const handleMouseMove = (e) => {
-    const el = panelRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    el.style.setProperty("--mx", x.toFixed(3));
-    el.style.setProperty("--my", y.toFixed(3));
-  };
-
   return (
-    <div
-      ref={panelRef}
-      onMouseMove={handleMouseMove}
-      className="relative hidden w-1/2 overflow-hidden bg-ink-950 lg:flex lg:items-center lg:justify-center"
-    >
-      <div className="blob-field absolute inset-0">
-        <span className="blob blob-1" />
-        <span className="blob blob-2" />
-        <span className="blob blob-3" />
-      </div>
-      <div className="brand-grid absolute inset-0" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950 via-transparent to-ink-950/40" />
+    <div className="relative hidden w-[52%] overflow-hidden bg-ink-950 lg:block">
+      <NetworkCanvas className="absolute inset-0 h-full w-full" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_40%,transparent_0%,rgba(20,20,19,0.55)_55%,rgba(20,20,19,0.95)_100%)]" />
+      <div className="pointer-events-none absolute -bottom-40 -left-24 h-[420px] w-[420px] rounded-full bg-accent/25 blur-[120px]" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative z-10 max-w-md px-12 text-white"
-      >
-        <img
-          src="/tcs-logo.svg"
-          alt="TCS"
-          className="h-8 w-auto"
-          style={{ filter: "brightness(0) invert(1)" }}
-        />
+      <div className="pointer-events-none relative z-10 flex h-full flex-col justify-between p-12">
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="flex items-center gap-4">
+          <img src="/tcs-logo.svg" alt="Tata Consultancy Services" className="h-16 w-auto" style={{ filter: "brightness(0) invert(1)" }} />
+          <span className="h-10 w-px bg-white/20" />
+          <span className="text-[15px] font-semibold tracking-tight text-white">Agent Playground</span>
+        </motion.div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15 }}
-          className="mt-9 text-[32px] font-bold leading-[1.15] tracking-tight"
-        >
-          Nuestro propio{" "}
-          <span className="shimmer-text">entorno de agentes de IA</span>
-        </motion.h1>
+        <div className="max-w-xl">
+          <motion.h1
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            className="font-serif text-[56px] leading-[1.02] tracking-[-0.01em] text-white"
+          >
+            Todos tus agentes de IA,
+            <br />
+            <span className="italic text-accent-light">en un solo lugar.</span>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.3 }}
+            className="mt-5 max-w-md text-[15px] leading-relaxed text-white/55"
+          >
+            Crea, prueba y gobierna agentes con modelos que corren en tu propia infraestructura.
+          </motion.p>
 
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-4 text-[14px] leading-relaxed text-white/55"
-        >
-          Un espacio privado para crear, probar y administrar agentes internos
-          de TCS — sin que un solo dato salga de nuestra infraestructura.
-        </motion.p>
-
-        <div className="mt-9 flex flex-col gap-2.5">
-          {STATS.map((s, i) => (
-            <motion.div
-              key={s.label}
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.45, delay: 0.45 + i * 0.1 }}
-              className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 backdrop-blur-sm"
-            >
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/10 text-tcs-light">
-                <s.icon size={13} />
-              </span>
-              <span className="text-[12.5px] font-medium text-white/80">{s.label}</span>
-            </motion.div>
-          ))}
+          <div className="mt-10 space-y-3">
+            {HIGHLIGHTS.map((h, i) => (
+              <motion.div
+                key={h.label}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 + i * 0.1 }}
+                className="flex items-center gap-3 text-[13.5px] text-white/75"
+              >
+                <span className="grid h-7 w-7 place-items-center rounded-lg border border-white/10 bg-white/5 text-accent-light">
+                  <h.icon size={14} />
+                </span>
+                {h.label}
+              </motion.div>
+            ))}
+          </div>
         </div>
-      </motion.div>
+
+        <p className="text-[12px] text-white/35">© {new Date().getFullYear()} Tata Consultancy Services</p>
+      </div>
     </div>
   );
 }
 
 export default function Login() {
-  const { users, login } = useSession();
-  const [selected, setSelected] = useState(null);
+  const { login } = useSession();
+  const [email, setEmail] = useState(() => {
+    try {
+      return localStorage.getItem("ap-last-email") || "";
+    } catch {
+      return "";
+    }
+  });
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(true);
   const [status, setStatus] = useState("idle"); // idle | loading | success
+  const [error, setError] = useState("");
+  const [shakeKey, setShakeKey] = useState(0);
+  const passwordRef = useRef(null);
+  const emailRef = useRef(null);
 
   useEffect(() => {
-    if (users?.length && !selected) setSelected(users[0]);
-  }, [users]); // eslint-disable-line react-hooks/exhaustive-deps
+    (email ? passwordRef : emailRef).current?.focus();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const canSubmit = selected && password.trim().length > 0 && status === "idle";
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!canSubmit) return;
+    if (status !== "idle") return;
+    if (!email.trim() || !password) {
+      setError("Ingresa tu correo y contraseña.");
+      setShakeKey((k) => k + 1);
+      return;
+    }
+    setError("");
     setStatus("loading");
-    setTimeout(() => {
+    try {
+      const finish = await login(email.trim(), password, remember);
       setStatus("success");
-      setTimeout(() => login(selected), 550);
-    }, 700);
+      setTimeout(finish, 650);
+    } catch (err) {
+      setStatus("idle");
+      setError(errorMessage(err, "No pudimos conectar con el servidor. Intenta nuevamente."));
+      setShakeKey((k) => k + 1);
+    }
+  };
+
+  const pickAccount = (account) => {
+    setEmail(account.email);
+    setError("");
+    passwordRef.current?.focus();
   };
 
   return (
     <motion.div
-      exit={{ opacity: 0, scale: 1.02 }}
-      transition={{ duration: 0.4, ease: "easeIn" }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.35 }}
       className="flex h-screen w-full overflow-hidden bg-white"
     >
       <BrandPanel />
 
-      <div className="flex w-full items-center justify-center overflow-y-auto bg-mist-50 px-6 py-10 lg:w-1/2">
+      <div className="relative flex flex-1 items-center justify-center overflow-y-auto px-6 py-10">
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-sm"
+          transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full max-w-[380px]"
         >
-          <div className="mb-8 flex items-center gap-2.5 lg:hidden">
-            <img src="/tcs-logo.svg" alt="TCS" className="h-6 w-auto" />
-            <span className="text-[13px] font-semibold text-ink-950">Agent Playground</span>
+          <div className="mb-10 lg:hidden">
+            <Logo />
           </div>
 
-          <h2 className="text-[22px] font-bold tracking-tight text-ink-950">Bienvenido de vuelta</h2>
-          <p className="mt-1.5 text-[13.5px] text-mist-500">
-            Selecciona tu perfil para acceder al entorno de agentes.
-          </p>
+          <h2 className="text-[26px] font-semibold tracking-tight text-ink-950">Inicia sesión</h2>
+          <p className="mt-1.5 text-[14px] text-mist-500">Accede con tu cuenta corporativa.</p>
 
-          <form onSubmit={handleSubmit} className="mt-7 space-y-5">
+          <motion.form key={shakeKey} onSubmit={handleSubmit} className={`mt-8 space-y-4 ${shakeKey ? "animate-shake" : ""}`} noValidate>
             <div>
-              <label className="mb-2 block text-[11.5px] font-semibold uppercase tracking-wide text-mist-400">
-                Perfil
-              </label>
-              <div className="space-y-2">
-                {users.map((u, i) => (
-                  <motion.button
-                    type="button"
-                    key={u.id}
-                    onClick={() => setSelected(u)}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, delay: 0.1 + i * 0.06 }}
-                    whileHover={{ y: -1 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`focus-ring flex w-full items-center gap-3 rounded-xl border px-3.5 py-2.5 text-left transition-colors ${
-                      selected?.id === u.id
-                        ? "border-tcs bg-tcs-50 shadow-soft"
-                        : "border-mist-200 bg-white hover:border-mist-300"
-                    }`}
-                  >
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-mist-100 text-base">
-                      {u.avatar_emoji}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13px] font-medium text-ink-950">{u.name}</span>
-                      <span className="block text-[11.5px] text-mist-500">
-                        {u.title} · {ROLE_LABEL[u.role]}
-                      </span>
-                    </span>
-                    <span
-                      className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 transition-colors ${
-                        selected?.id === u.id ? "border-tcs bg-tcs" : "border-mist-300"
-                      }`}
-                    >
-                      {selected?.id === u.id && <Check size={11} className="text-white" strokeWidth={3} />}
-                    </span>
-                  </motion.button>
-                ))}
+              <label className="label" htmlFor="email">Correo electrónico</label>
+              <div className="relative">
+                <Mail size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-mist-400" />
+                <input
+                  id="email"
+                  ref={emailRef}
+                  type="email"
+                  autoComplete="username"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="nombre@tcs.com"
+                  className="input h-11 pl-9"
+                />
               </div>
             </div>
 
             <div>
-              <label className="mb-2 block text-[11.5px] font-semibold uppercase tracking-wide text-mist-400">
-                Contraseña
-              </label>
+              <label className="label" htmlFor="password">Contraseña</label>
               <div className="relative">
-                <Lock size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-mist-400" />
+                <Lock size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-mist-400" />
                 <input
-                  type="password"
+                  id="password"
+                  ref={passwordRef}
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="focus-ring w-full rounded-xl border border-mist-200 bg-white py-2.5 pl-10 pr-3.5 text-[13.5px]"
+                  className="input h-11 pl-9 pr-10"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="focus-ring absolute right-2 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md text-mist-400 hover:text-ink-950"
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
               </div>
-              <p className="mt-1.5 text-[11px] text-mist-400">
-                Prototipo interno — cualquier contraseña es válida.
-              </p>
             </div>
 
-            <motion.button
+            <label className="flex cursor-pointer select-none items-center gap-2 text-[13px] text-ink-700">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+                className="h-4 w-4 rounded border-mist-300 accent-ink-950"
+              />
+              Mantener la sesión iniciada
+            </label>
+
+            <AnimatePresence>
+              {error && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="rounded-lg bg-red-50 px-3 py-2 text-[12.5px] text-red-700"
+                  role="alert"
+                >
+                  {error}
+                </motion.p>
+              )}
+            </AnimatePresence>
+
+            <button
               type="submit"
-              disabled={!canSubmit}
-              whileTap={canSubmit ? { scale: 0.98 } : {}}
-              className="focus-ring flex w-full items-center justify-center gap-2 rounded-xl bg-ink-950 py-3 text-[13.5px] font-semibold text-white transition hover:bg-ink-800 disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={status !== "idle"}
+              className={`btn h-11 w-full text-[14px] text-white shadow-soft ${
+                status === "success" ? "bg-emerald-600" : "bg-ink-950 hover:bg-ink-800"
+              } disabled:cursor-default disabled:opacity-100`}
             >
               <AnimatePresence mode="wait" initial={false}>
                 {status === "idle" && (
-                  <motion.span
-                    key="idle"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="flex items-center gap-2"
-                  >
-                    Iniciar sesión <ArrowRight size={14} />
+                  <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
+                    Continuar <ArrowRight size={15} />
                   </motion.span>
                 )}
                 {status === "loading" && (
-                  <motion.span
-                    key="loading"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="flex items-center gap-2"
-                  >
-                    <Loader2 size={15} className="animate-spin" /> Verificando…
+                  <motion.span key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
+                    <Loader2 size={15} className="animate-spin" /> Verificando
                   </motion.span>
                 )}
                 {status === "success" && (
-                  <motion.span
-                    key="success"
-                    initial={{ opacity: 0, scale: 0.7 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-center gap-2"
-                  >
-                    <Check size={15} strokeWidth={3} /> Acceso concedido
+                  <motion.span key="success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-2">
+                    <Check size={15} strokeWidth={3} /> Bienvenido
                   </motion.span>
                 )}
               </AnimatePresence>
-            </motion.button>
-          </form>
+            </button>
+          </motion.form>
 
-          <p className="mt-8 text-center text-[11px] text-mist-400">
-            TCS Agent Playground — acceso interno de evaluación (POC)
-          </p>
+          <div className="mt-9">
+            <div className="flex items-center gap-3">
+              <span className="h-px flex-1 bg-mist-200" />
+              <span className="text-[11.5px] text-mist-400">Cuentas recientes</span>
+              <span className="h-px flex-1 bg-mist-200" />
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {RECENT_ACCOUNTS.map((a, i) => (
+                <motion.button
+                  key={a.email}
+                  type="button"
+                  onClick={() => pickAccount(a)}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.35 + i * 0.06 }}
+                  whileHover={{ y: -2 }}
+                  title={a.email}
+                  className={`focus-ring flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 transition-colors ${
+                    email === a.email ? "border-ink-950 bg-mist-50" : "border-mist-200 hover:border-mist-300"
+                  }`}
+                >
+                  <Avatar name={a.name} role={a.role} size="md" />
+                  <span className="w-full truncate text-center text-[12px] font-medium text-ink-950">{a.name.split(" ")[0]}</span>
+                </motion.button>
+              ))}
+            </div>
+          </div>
         </motion.div>
       </div>
     </motion.div>

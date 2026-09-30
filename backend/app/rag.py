@@ -32,14 +32,19 @@ def chunk_text(text: str, size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) 
 async def ingest_document(session: Session, agent_id: int, filename: str, raw: bytes) -> KnowledgeDocument:
     text = extract_text(filename, raw)
     chunks = chunk_text(text)
+    if not chunks:
+        raise ValueError("El documento no contiene texto legible")
+
+    # Se generan todos los embeddings antes de escribir: si el modelo falla a mitad,
+    # no queda un documento a medio indexar.
+    vectors = [await ollama_client.embed(chunk) for chunk in chunks]
 
     doc = KnowledgeDocument(agent_id=agent_id, filename=filename, chunk_count=len(chunks))
     session.add(doc)
     session.commit()
     session.refresh(doc)
 
-    for idx, chunk in enumerate(chunks):
-        vector = await ollama_client.embed(chunk)
+    for idx, (chunk, vector) in enumerate(zip(chunks, vectors)):
         session.add(
             KnowledgeChunk(
                 document_id=doc.id,

@@ -56,9 +56,22 @@ iteración del POC (todas las tareas P1–P2 completadas para la demo).
 - [X] T083 Contrato de API (`contracts/api.md`) y guía de inicio rápido (`quickstart.md`)
 - [X] T084 `AGENTS.md` (guía para agentes de IA que trabajen en este repo) y `README.md`
 
+## Fase 10 — Iteración 2: producto demostrable
+- [X] T100 Login con correo y contraseña (hash PBKDF2, tokens firmados) — `security.py`, `routers/auth.py`
+- [X] T101 Permisos validados en el servidor para todas las rutas (`require(permiso)`)
+- [X] T102 Gestión de usuarios: crear, editar, desactivar, eliminar (`routers/users.py`, `UsersPage.jsx`)
+- [X] T103 Consumo por agente, modelo y usuario con filtro de periodo (`routers/metrics.py`, `Usage.jsx`)
+- [X] T104 Migración automática de bases existentes (`database.py::_migrate`)
+- [X] T105 Rediseño visual: paleta negro/blanco + naranja, íconos en lugar de emojis, tipografía autoalojada
+- [X] T106 Menú lateral plegable, tooltips, buscador global (Ctrl+K), toasts y confirmaciones
+- [X] T107 Historial de conversaciones por usuario, sugerencias de inicio y Markdown en respuestas
+- [X] T108 Flujos con progreso en vivo (`/api/orchestration/stream`)
+- [X] T109 Manejo controlado de fallas del motor de modelos (503 + métrica fallida + traza)
+- [X] T110 Eliminación de textos internos de la interfaz ("POC", "prototipo", metodología)
+
 ## Backlog explícito (fuera de esta iteración)
 
-- [ ] T090 Autenticación real / SSO corporativo
+- [ ] T090 SSO corporativo (reemplazar el login local)
 - [ ] T091 Adaptador de modelo en la nube (OpenAI/Anthropic) tras `ollama_client`
 - [ ] T092 Streaming de respuestas token-a-token
 - [ ] T093 Vectorstore dedicado para RAG a mayor escala

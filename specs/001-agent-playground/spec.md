@@ -2,7 +2,7 @@
 
 **Feature branch**: `001-agent-playground`
 **Creado**: 2026-09-30
-**Estado**: Borrador para revisión de negocio (POC)
+**Estado**: Iteración 2 — producto demostrable con autenticación y consumo detallado
 **Entrada**: "Un playground propio para administrar agentes internos de TCS: crear,
 probar, monitorear y gestionar agentes de IA de forma centralizada, con modelos
 locales, RAG, herramientas, trazabilidad y control de accesos."
@@ -77,10 +77,25 @@ generó cada agente, y comparar el costo de modelos locales contra una
 referencia de mercado en la nube, para justificar la inversión.
 
 **Criterios de aceptación**:
-1. El panel muestra solicitudes, tokens y latencia promedio, global y por
-   agente, con datos reales de uso (no de ejemplo estático).
+1. El panel muestra solicitudes, tokens (entrada/salida) y latencia promedio,
+   global y por agente, modelo y usuario, filtrable por periodo (7/30/90 días).
+   En una instalación nueva se siembra un historial de 30 días
+   (`SEED_DEMO_ACTIVITY`) para que el panel tenga contexto; el uso real se suma
+   encima.
 2. El panel muestra el costo local ($0 marginal) frente a un costo de
    referencia estimado si se usara una API comercial equivalente.
+
+### US-7 — Iniciar sesión y administrar usuarios (Prioridad: P2)
+Como Administrador, quiero que cada persona entre con su propia cuenta y poder
+crear, editar, desactivar o eliminar cuentas, para controlar quién usa la
+plataforma y con qué rol.
+
+**Criterios de aceptación**:
+1. Solo se accede con correo y contraseña válidos; las contraseñas se guardan
+   con hash, nunca en texto plano.
+2. El Administrador crea cuentas asignando un rol y una contraseña temporal.
+3. Una cuenta desactivada no puede iniciar sesión.
+4. Los permisos se validan en el servidor, no solo ocultando botones.
 
 ### US-6 — Controlar accesos por rol (RBAC) (Prioridad: P3)
 Como Administrador, quiero que solo ciertos roles puedan crear, editar o
@@ -93,7 +108,8 @@ eliminar agentes, para evitar cambios no autorizados.
 
 ## Fuera de Alcance (explícito)
 
-- Autenticación real / integración con SSO o Active Directory corporativo.
+- Integración con SSO o Active Directory corporativo (el login actual usa
+  credenciales locales con hash; el SSO queda como siguiente paso).
 - Múltiples organizaciones/tenants o facturación real.
 - Modelos en la nube (OpenAI/Anthropic/etc.) — queda como extensión futura ya
   prevista en la arquitectura (Principio II de la constitución).
@@ -104,6 +120,6 @@ eliminar agentes, para evitar cambios no autorizados.
 
 - Un desarrollador puede crear un agente funcional en menos de 2 minutos durante
   la demo, sin tocar código.
-- La Gerencia Regional puede, sin ayuda técnica, identificar las 4 capacidades
-  clave y su beneficio de negocio solo con la pantalla de "Resumen".
+- La Gerencia Regional puede, sin ayuda técnica, ver desde "Inicio" el consumo
+  de tokens, la actividad reciente y los agentes más usados.
 - El costo marginal por interacción demostrado es $0 (modelos 100% locales).

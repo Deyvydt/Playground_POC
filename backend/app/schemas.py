@@ -1,32 +1,57 @@
 from datetime import datetime
-from pydantic import BaseModel
+from typing import Literal
+from pydantic import BaseModel, Field
+
+Role = Literal["admin", "developer", "viewer"]
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class UserCreate(BaseModel):
+    name: str = Field(min_length=2)
+    email: str = Field(min_length=3)
+    title: str = ""
+    role: Role = "viewer"
+    password: str = Field(min_length=6)
+
+
+class UserUpdate(BaseModel):
+    name: str | None = None
+    email: str | None = None
+    title: str | None = None
+    role: Role | None = None
+    is_active: bool | None = None
+    password: str | None = Field(default=None, min_length=6)
 
 
 class AgentCreate(BaseModel):
-    name: str
-    avatar_emoji: str = "🤖"
+    name: str = Field(min_length=2)
+    icon: str = "bot"
     description: str = ""
-    role_prompt: str
+    role_prompt: str = Field(min_length=5)
     model: str = "llama3.2:3b"
-    temperature: float = 0.4
+    temperature: float = Field(default=0.4, ge=0, le=1)
     tools: list[str] = []
 
 
 class AgentUpdate(BaseModel):
     name: str | None = None
-    avatar_emoji: str | None = None
+    icon: str | None = None
     description: str | None = None
     role_prompt: str | None = None
     model: str | None = None
-    temperature: float | None = None
+    temperature: float | None = Field(default=None, ge=0, le=1)
     tools: list[str] | None = None
-    status: str | None = None
+    status: Literal["active", "inactive"] | None = None
 
 
 class AgentRead(BaseModel):
     id: int
     name: str
-    avatar_emoji: str
+    icon: str
     description: str
     role_prompt: str
     model: str
@@ -38,33 +63,10 @@ class AgentRead(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    message: str
+    message: str = Field(min_length=1)
     conversation_id: int | None = None
 
 
-class ChatResponse(BaseModel):
-    conversation_id: int
-    message: dict
-    trace: list[dict]
-    latency_ms: int
-    prompt_tokens: int
-    completion_tokens: int
-
-
 class OrchestrationRequest(BaseModel):
-    input_text: str
-    pipeline: list[int]  # ordered list of agent ids
-
-
-class OrchestrationStep(BaseModel):
-    agent_id: int
-    agent_name: str
-    avatar_emoji: str
-    output: str
-    trace: list[dict]
-    latency_ms: int
-
-
-class OrchestrationResponse(BaseModel):
-    steps: list[OrchestrationStep]
-    final_output: str
+    input_text: str = Field(min_length=1)
+    pipeline: list[int] = Field(min_length=1)  # ids de agentes en orden

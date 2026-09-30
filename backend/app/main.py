@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import init_db
 from app.config import CORS_ORIGIN
 from app.seed import run_seed, seed_sample_knowledge
-from app.routers import agents, knowledge, chat, orchestration, metrics, users, system
+from app.routers import agents, auth, knowledge, chat, orchestration, metrics, users, system
 
 logging.basicConfig(level=logging.INFO)
 
@@ -19,7 +19,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="TCS Agent Playground API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="TCS Agent Playground API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,6 +30,7 @@ app.add_middleware(
 )
 
 app.include_router(system.router)
+app.include_router(auth.router)
 app.include_router(agents.router)
 app.include_router(knowledge.router)
 app.include_router(chat.router)

@@ -1,20 +1,35 @@
-export default function StatTile({ label, value, sub, icon: Icon, accent = false }) {
+import { motion } from "framer-motion";
+import AnimatedNumber from "./AnimatedNumber";
+import Tooltip from "./Tooltip";
+import { Info } from "lucide-react";
+
+export default function StatTile({ label, value, format, sub, icon: Icon, hint, delay = 0, highlight = false }) {
   return (
-    <div className="rounded-2xl border border-mist-200 bg-white p-5 shadow-soft animate-fadeUp">
-      <div className="flex items-start justify-between">
-        <span className="text-[12.5px] font-medium text-mist-500">{label}</span>
-        {Icon && (
-          <span
-            className={`grid h-8 w-8 place-items-center rounded-full ${
-              accent ? "bg-tcs-50 text-tcs" : "bg-mist-100 text-mist-500"
-            }`}
-          >
-            <Icon size={16} strokeWidth={2} />
-          </span>
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay }}
+      className={`group relative overflow-hidden rounded-xl border p-4 transition-shadow hover:shadow-card ${
+        highlight ? "border-ink-950 bg-ink-950 text-white" : "border-mist-200 bg-white"
+      }`}
+    >
+      <div className="flex items-center justify-between">
+        <span className={`flex items-center gap-1.5 text-[12px] font-medium ${highlight ? "text-white/60" : "text-mist-500"}`}>
+          {Icon && <Icon size={14} strokeWidth={1.75} className={highlight ? "text-accent-light" : "text-mist-400"} />}
+          {label}
+        </span>
+        {hint && (
+          <Tooltip label={hint}>
+            <button className={`focus-ring rounded ${highlight ? "text-white/40 hover:text-white" : "text-mist-300 hover:text-ink-950"}`}>
+              <Info size={13} />
+            </button>
+          </Tooltip>
         )}
       </div>
-      <div className="mt-3 text-2xl font-semibold tabular text-ink-950">{value}</div>
-      {sub && <div className="mt-1 text-[12px] text-mist-500">{sub}</div>}
-    </div>
+      <div className="mt-2.5 text-[26px] font-semibold leading-none tracking-tight">
+        {typeof value === "number" ? <AnimatedNumber value={value} format={format} /> : value ?? "—"}
+      </div>
+      {sub && <div className={`mt-2 text-[12px] ${highlight ? "text-white/55" : "text-mist-500"}`}>{sub}</div>}
+    </motion.div>
   );
 }

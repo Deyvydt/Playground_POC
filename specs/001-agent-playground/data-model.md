@@ -11,15 +11,15 @@ Representa un agente configurable.
 |---|---|---|
 | id | int (PK) | |
 | name | string | |
-| avatar_emoji | string | Identidad visual rápida en la UI |
+| icon | string | Clave de ícono de la UI (ej. `wrench`, `chart-column`) |
 | description | string | Resumen de una línea |
 | role_prompt | text | Prompt de sistema — define personalidad y reglas |
 | model | string | Nombre del modelo Ollama (ej. `llama3.2:3b`) |
 | temperature | float | 0.0–1.0 |
 | tools | JSON (list[str]) | Nombres de herramientas habilitadas |
 | status | string | `active` \| `inactive` |
-| created_by | string | Nombre del usuario (simulado) |
-| created_at | datetime | |
+| created_by | string | Nombre del usuario que lo creó |
+| created_at / updated_at | datetime | |
 
 ## KnowledgeDocument
 Un archivo subido a la base de conocimiento de un agente.
@@ -51,6 +51,7 @@ Una sesión de chat entre un usuario y un agente.
 |---|---|---|
 | id | int (PK) | |
 | agent_id | int (FK -> Agent) | |
+| user_id | int \| null | Dueño de la conversación (cada usuario ve solo las suyas) |
 | title | string | Derivado del primer mensaje |
 | started_at | datetime | |
 
@@ -74,23 +75,30 @@ Un registro de auditoría/consumo por cada turno ejecutado (chat u orquestación
 | Campo | Tipo | Notas |
 |---|---|---|
 | id | int (PK) | |
-| agent_id, agent_name, model | — | Denormalizados para reportes simples |
+| agent_id, agent_name, model | — | Denormalizados para reportes simples (se conservan si el agente se elimina) |
+| user_id | int \| null | Usuario que originó el turno (consumo por usuario) |
 | latency_ms, prompt_tokens, completion_tokens, total_tokens | int | |
 | tool_calls | int | Cantidad de herramientas invocadas en el turno |
 | success | bool | |
 | error_message | string \| null | |
 | created_at | datetime | |
 
-## User (RBAC simulado)
-No hay autenticación real; representa el "usuario simulado" activo en la sesión.
+## User
+Cuenta con credenciales locales (correo + contraseña) y un rol.
 
 | Campo | Tipo | Notas |
 |---|---|---|
 | id | int (PK) | |
 | name | string | |
+| email | string | Único, en minúsculas; identificador de login |
+| password_hash | string | PBKDF2-SHA256 con sal (`app/security.py`) |
 | role | string | `admin` \| `developer` \| `viewer` |
-| avatar_emoji | string | |
 | title | string | Cargo mostrado en la UI |
+| is_active | bool | Una cuenta inactiva no puede iniciar sesión |
+| created_at / last_login_at | datetime | |
+
+Las columnas nuevas se agregan automáticamente a bases existentes al iniciar
+(`database.py::_migrate`).
 
 ## Relaciones
 
