@@ -2,7 +2,7 @@ import logging
 import random
 from datetime import datetime, timedelta
 from sqlmodel import Session, select
-from app.config import SEED_DEMO_ACTIVITY
+from app.config import DEFAULT_CHAT_MODEL, SEED_DEMO_ACTIVITY
 from app.database import engine
 from app.models import User, Agent, MetricLog, KnowledgeDocument
 from app.security import hash_password
@@ -28,7 +28,7 @@ DEMO_AGENTS = [
             "Si el usuario menciona un identificador de ticket, usa la herramienta consultar_ticket_interno. "
             "Si necesitas la fecha u hora, usa la herramienta fecha_actual."
         ),
-        "model": "llama3.2:3b",
+        "model": DEFAULT_CHAT_MODEL,
         "temperature": 0.3,
         "tools": ["consultar_ticket_interno", "fecha_actual"],
     },
@@ -41,7 +41,7 @@ DEMO_AGENTS = [
             "identificas tendencias clave y, cuando haga falta hacer una cuenta, usas la herramienta calculadora. "
             "Responde en español con un tono ejecutivo y estructurado (usa bullets cuando ayude)."
         ),
-        "model": "llama3.2:3b",
+        "model": DEFAULT_CHAT_MODEL,
         "temperature": 0.4,
         "tools": ["calculadora"],
     },
@@ -53,7 +53,7 @@ DEMO_AGENTS = [
             "Eres un redactor ejecutivo de TCS. Tomas análisis o datos crudos y los transformas en un resumen "
             "breve, profesional y persuasivo para un gerente, en español, máximo 150 palabras."
         ),
-        "model": "llama3.2:3b",
+        "model": DEFAULT_CHAT_MODEL,
         "temperature": 0.5,
         "tools": [],
     },
@@ -66,7 +66,7 @@ DEMO_AGENTS = [
             "unicamente el contexto interno recuperado cuando este disponible. Si no encuentras la "
             "respuesta en el contexto, dilo con honestidad. Responde en español, de forma cercana y breve."
         ),
-        "model": "llama3.2:3b",
+        "model": DEFAULT_CHAT_MODEL,
         "temperature": 0.3,
         "tools": [],
     },
@@ -79,7 +79,7 @@ DEMO_AGENTS = [
             "permisos y tramites de forma empatica y precisa, en español. Si una consulta requiere "
             "revision de un caso personal, recomiendas escribir a HR Connect."
         ),
-        "model": "llama3.2:3b",
+        "model": DEFAULT_CHAT_MODEL,
         "temperature": 0.4,
         "tools": ["fecha_actual"],
     },
@@ -92,7 +92,7 @@ DEMO_AGENTS = [
             "riesgo (penalidades, responsabilidad, confidencialidad, plazos) y las resumes en una tabla "
             "breve con nivel de riesgo. Responde en español y no inventes clausulas que no esten en el texto."
         ),
-        "model": "llama3.2:3b",
+        "model": DEFAULT_CHAT_MODEL,
         "temperature": 0.2,
         "tools": [],
         "status": "inactive",
@@ -141,6 +141,10 @@ def _seed_users(session: Session) -> None:
 
 def _seed_agents(session: Session) -> None:
     for agent in session.exec(select(Agent)).all():
+        # Si el modelo por defecto del entorno cambia, los agentes de ejemplo no quedan apuntando a uno ausente.
+        if agent.model == "llama3.2:3b" and DEFAULT_CHAT_MODEL != agent.model:
+            agent.model = DEFAULT_CHAT_MODEL
+            session.add(agent)
         if agent.avatar_emoji in LEGACY_ICONS and agent.icon in (None, "", "bot"):
             agent.icon = LEGACY_ICONS[agent.avatar_emoji]
             session.add(agent)

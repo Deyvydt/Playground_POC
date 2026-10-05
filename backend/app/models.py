@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from sqlmodel import SQLModel, Field, Column, JSON
+from app.config import DEFAULT_CHAT_MODEL
 
 
 class User(SQLModel, table=True):
@@ -23,7 +24,7 @@ class Agent(SQLModel, table=True):
     avatar_emoji: str = ""  # legado, ya no se usa en la interfaz
     description: str = ""
     role_prompt: str
-    model: str = "llama3.2:3b"
+    model: str = DEFAULT_CHAT_MODEL
     temperature: float = 0.4
     tools: list[str] = Field(default_factory=list, sa_column=Column(JSON))
     status: str = "active"  # active | inactive

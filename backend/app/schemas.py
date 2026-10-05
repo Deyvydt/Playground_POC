@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Literal
 from pydantic import BaseModel, Field
+from app.config import DEFAULT_CHAT_MODEL
 
 Role = Literal["admin", "developer", "viewer"]
 
@@ -32,7 +33,7 @@ class AgentCreate(BaseModel):
     icon: str = "bot"
     description: str = ""
     role_prompt: str = Field(min_length=5)
-    model: str = "llama3.2:3b"
+    model: str = DEFAULT_CHAT_MODEL
     temperature: float = Field(default=0.4, ge=0, le=1)
     tools: list[str] = []
 

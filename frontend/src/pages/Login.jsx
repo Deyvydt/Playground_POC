@@ -28,10 +28,8 @@ function BrandPanel() {
       <div className="pointer-events-none absolute -bottom-40 -left-24 h-[420px] w-[420px] rounded-full bg-accent/25 blur-[120px]" />
 
       <div className="pointer-events-none relative z-10 flex h-full flex-col justify-between p-12">
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="flex items-center gap-4">
-          <img src="/tcs-logo.svg" alt="Tata Consultancy Services" className="h-16 w-auto" style={{ filter: "brightness(0) invert(1)" }} />
-          <span className="h-10 w-px bg-white/20" />
-          <span className="text-[15px] font-semibold tracking-tight text-white">Agent Playground</span>
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="flex items-center">
+          <Logo inverted size="xl" />
         </motion.div>
 
         <div className="max-w-xl">

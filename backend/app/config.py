@@ -7,6 +7,7 @@ load_dotenv(BASE_DIR / ".env")
 
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 EMBED_MODEL = os.getenv("EMBED_MODEL", "nomic-embed-text")
+DEFAULT_CHAT_MODEL = os.getenv("DEFAULT_CHAT_MODEL", "llama3.2:3b")
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{(BASE_DIR / 'data' / 'playground.db').as_posix()}")
 CORS_ORIGIN = os.getenv("CORS_ORIGIN", "http://localhost:5173")
 

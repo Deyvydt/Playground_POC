@@ -27,7 +27,12 @@ export default function AgentFormModal({ open, initial, onSubmit, onClose }) {
     if (!open) return;
     setForm(initial ? { ...EMPTY, ...initial } : EMPTY);
     listModels()
-      .then((m) => setModels(m.filter((x) => !x.embedding).length ? m.filter((x) => !x.embedding) : FALLBACK_MODELS))
+      .then((m) => {
+        const chat = m.filter((x) => !x.embedding);
+        setModels(chat.length ? chat : FALLBACK_MODELS);
+        // Un agente nuevo parte del primer modelo realmente instalado.
+        if (!initial && chat.length) setForm((f) => (chat.some((x) => x.name === f.model) ? f : { ...f, model: chat[0].name }));
+      })
       .catch(() => setModels(FALLBACK_MODELS));
     listTools().then(setTools).catch(() => setTools([]));
   }, [open, initial]);
