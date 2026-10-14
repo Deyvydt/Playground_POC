@@ -1,6 +1,8 @@
 # Configuración del gateway de LLMs (LiteLLM Proxy).
 # Los clientes solo ven los alias de `model_name`; las URLs internas y las API keys
 # reales viven aquí y en .env (nunca en el repositorio).
+# Access groups: una key o team con models: ["local-models"] puede usar todos
+# los modelos del grupo; agregar un modelo al grupo no requiere editar keys.
 
 model_list:
   # --- Modelos locales (Ollama) ---
@@ -10,6 +12,7 @@ model_list:
       model: ollama_chat/llama-3.2-3b-it:latest
       api_base: os.environ/OLLAMA_API_BASE
     model_info:
+      access_groups: ["local-models"]
       input_cost_per_token: 0.0000002
       output_cost_per_token: 0.0000004
 
@@ -19,6 +22,7 @@ model_list:
       api_base: os.environ/OLLAMA_API_BASE
     model_info:
       mode: embedding
+      access_groups: ["local-models"]
       input_cost_per_token: 0.00000002
       output_cost_per_token: 0
 
@@ -28,10 +32,14 @@ model_list:
   #   litellm_params:
   #     model: anthropic/<id-del-modelo>
   #     api_key: os.environ/ANTHROPIC_API_KEY_1
+  #   model_info:
+  #     access_groups: ["cloud-models"]
   # - model_name: claude-sonnet
   #   litellm_params:
   #     model: anthropic/<id-del-modelo>
   #     api_key: os.environ/ANTHROPIC_API_KEY_2
+  #   model_info:
+  #     access_groups: ["cloud-models"]
 
 router_settings:
   routing_strategy: simple-shuffle

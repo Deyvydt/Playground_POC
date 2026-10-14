@@ -8,15 +8,15 @@ Generado a partir de `plan.md`.
 - [X] T003 `.gitignore` para `services/**/.env` y datos de pgserver
 
 ## Fase 1 — Gateway mínimo
-- [ ] T010 `services/gateway/start_db.py` (pgserver, bases `litellm` y `governance`)
-- [ ] T011 `config.yaml` con `llama-local` y `embed-local`, costo interno > 0
-- [ ] T012 Script de arranque del gateway y `.env.example`
-- [ ] T013 Virtual key de prueba y llamada exitosa
+- [X] T010 `services/gateway/start_db.py` (pgserver, bases `litellm` y `governance`)
+- [X] T011 `config.yaml` con `llama-local` y `embed-local`, costo interno > 0
+- [X] T012 Script de arranque del gateway y `.env.example`
+- [X] T013 Virtual key de prueba y llamada exitosa
 
 ## Fase 2 — Teams, access groups y límites
-- [ ] T020 `bootstrap.py` idempotente: teams `rrhh`, `desarrollo`, `plataforma`
-- [ ] T021 Access groups `local-models` / `cloud-models`
-- [ ] T022 `verify_gateway.py`: válida, modelo no permitido, presupuesto, bloqueada
+- [X] T020 `bootstrap.py` idempotente: teams `rrhh`, `desarrollo`, `plataforma`
+- [X] T021 Access groups `local-models` / `cloud-models`
+- [X] T022 `verify_gateway.py`: válida, modelo no permitido, presupuesto, bloqueada
 
 ## Fase 3 — governance
 - [ ] T030 Modelos: Organization, Area, Sistema, Agente, Notification
