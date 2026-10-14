@@ -1,5 +1,11 @@
 <!--
 Sync Impact Report
+- Version: 1.0.0 -> 1.1.0 (2026-10-14)
+- Principle II expandido: el gateway de LLMs (LiteLLM Proxy) es el adaptador único
+  para todo consumo de modelos; ollama_client pasa a hablarle al gateway.
+- Restricciones Técnicas: se admite arquitectura de microservicios, Postgres
+  embebido (pgserver) para el gateway y LangGraph para agentes de prueba.
+- Specs afectadas: specs/002-llm-gateway/{spec,plan,tasks}.md (nuevas).
 - Version: (none) -> 1.0.0
 - Ratified: 2026-09-30
 - Principles added: I. Privacidad y Localidad de Datos, II. Independencia de Proveedores,
@@ -31,6 +37,9 @@ La capa que invoca modelos DEBE estar aislada detrás de un cliente/adaptador
 único (`ollama_client`), de forma que agregar o cambiar un proveedor de modelo
 sea un cambio localizado, no una reescritura. Un agente DEBE poder declarar su
 modelo de forma independiente de los demás.
+Desde la versión 1.1.0, todo consumo de modelos (de TokenIO o de sistemas
+cliente) DEBE pasar por el gateway de LLMs con una virtual key; las API keys
+reales de proveedores solo existen en la configuración del gateway.
 **Razón**: evita el "vendor lock-in" y permite reaccionar a cambios de precio o
 políticas de terceros con mínima fricción.
 
@@ -68,6 +77,10 @@ no el sistema final; sobre-construir retrasa la demo sin agregar valor de decisi
 - Motor de modelos: Ollama, ejecutándose en `localhost:11434`.
 - Persistencia de embeddings: SQLite (JSON) + similitud coseno en memoria — sin
   motor de base de datos vectorial dedicado, dado el volumen de datos del POC.
+- Gobierno de LLMs (`specs/002-llm-gateway`): microservicios independientes
+  (gateway LiteLLM, governance, agent-lab), cada uno con su proceso y base de
+  datos; Postgres embebido vía `pgserver` para no depender de Docker ni de
+  permisos de administrador; agentes de prueba construidos con LangGraph.
 
 ## Gobernanza
 

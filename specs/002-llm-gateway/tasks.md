@@ -1,0 +1,46 @@
+# Tareas — Gobierno de LLMs
+
+Generado a partir de `plan.md`.
+
+## Fase 0 — Specs
+- [X] T001 `spec.md`, `plan.md`, `tasks.md`
+- [X] T002 Enmienda de la constitución (microservicios, gateway, LangGraph)
+- [X] T003 `.gitignore` para `services/**/.env` y datos de pgserver
+
+## Fase 1 — Gateway mínimo
+- [ ] T010 `services/gateway/start_db.py` (pgserver, bases `litellm` y `governance`)
+- [ ] T011 `config.yaml` con `llama-local` y `embed-local`, costo interno > 0
+- [ ] T012 Script de arranque del gateway y `.env.example`
+- [ ] T013 Virtual key de prueba y llamada exitosa
+
+## Fase 2 — Teams, access groups y límites
+- [ ] T020 `bootstrap.py` idempotente: teams `rrhh`, `desarrollo`, `plataforma`
+- [ ] T021 Access groups `local-models` / `cloud-models`
+- [ ] T022 `verify_gateway.py`: válida, modelo no permitido, presupuesto, bloqueada
+
+## Fase 3 — governance
+- [ ] T030 Modelos: Organization, Area, Sistema, Agente, Notification
+- [ ] T031 Cliente de la admin API de LiteLLM
+- [ ] T032 Registro de agentes (key mostrada una vez, regenerar)
+- [ ] T033 Kill switch (pause/resume → block/unblock)
+- [ ] T034 Webhook de alertas + monitor de auto-pausa
+- [ ] T035 Notificaciones
+
+## Fase 4 — agent-lab
+- [ ] T040 Almacén cifrado de keys
+- [ ] T041 Grafo Talentia (rama condicional)
+- [ ] T042 Grafo AgentFactory (bucle de revisión)
+- [ ] T043 Alta de los 8 agentes en governance + endpoint de ejecución
+
+## Fase 5 — Backend de TokenIO vía gateway
+- [ ] T050 `ollama_client.py` con modo gateway
+- [ ] T051 Keys de los 6 agentes y alias de modelos
+
+## Fase 6 — Langfuse
+- [ ] T060 Callbacks del gateway sin contenido + metadata por ejecución
+
+## Fase 7 — UI
+- [ ] T070 Gobierno · T071 Registro de agentes · T072 Notificaciones · T073 Laboratorio
+
+## Fase 8 — Red local y documentación
+- [ ] T080 Modo servidor · T081 README · T082 `docker-compose.yml`
