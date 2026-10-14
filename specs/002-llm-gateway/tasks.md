@@ -19,12 +19,12 @@ Generado a partir de `plan.md`.
 - [X] T022 `verify_gateway.py`: válida, modelo no permitido, presupuesto, bloqueada
 
 ## Fase 3 — governance
-- [ ] T030 Modelos: Organization, Area, Sistema, Agente, Notification
-- [ ] T031 Cliente de la admin API de LiteLLM
-- [ ] T032 Registro de agentes (key mostrada una vez, regenerar)
-- [ ] T033 Kill switch (pause/resume → block/unblock)
-- [ ] T034 Webhook de alertas + monitor de auto-pausa
-- [ ] T035 Notificaciones
+- [X] T030 Modelos: Organization, Area, Sistema, Agente, Notification
+- [X] T031 Cliente de la admin API de LiteLLM
+- [X] T032 Registro de agentes (key mostrada una vez, regenerar)
+- [X] T033 Kill switch (pause/resume → block/unblock)
+- [X] T034 Webhook de alertas + monitor de auto-pausa
+- [X] T035 Notificaciones
 
 ## Fase 4 — agent-lab
 - [ ] T040 Almacén cifrado de keys

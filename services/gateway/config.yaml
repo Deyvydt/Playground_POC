@@ -47,3 +47,6 @@ router_settings:
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
   database_url: os.environ/DATABASE_URL
+  # Avisos de presupuesto (umbral y exceso) hacia governance vía WEBHOOK_URL.
+  alerting: ["webhook"]
+  alert_types: ["budget_alerts"]
