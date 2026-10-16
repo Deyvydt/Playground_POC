@@ -11,7 +11,7 @@ import pgserver
 PGDATA = Path(__file__).resolve().parent.parent / ".data" / "pg"
 HOST = "127.0.0.1"
 PORT = int(os.getenv("PG_PORT", "5433"))
-DATABASES = ["litellm", "governance"]
+DATABASES = ["litellm", "governance", "agentlab"]
 
 
 def psql(sql: str, database: str = "postgres") -> str:

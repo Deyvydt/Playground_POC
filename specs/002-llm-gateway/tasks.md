@@ -27,10 +27,10 @@ Generado a partir de `plan.md`.
 - [X] T035 Notificaciones
 
 ## Fase 4 — agent-lab
-- [ ] T040 Almacén cifrado de keys
-- [ ] T041 Grafo Talentia (rama condicional)
-- [ ] T042 Grafo AgentFactory (bucle de revisión)
-- [ ] T043 Alta de los 8 agentes en governance + endpoint de ejecución
+- [x] T040 Almacén cifrado de keys
+- [x] T041 Grafo Talentia (rama condicional)
+- [x] T042 Grafo AgentFactory (bucle de revisión)
+- [x] T043 Alta de los 8 agentes en governance + endpoint de ejecución
 
 ## Fase 5 — Backend de TokenIO vía gateway
 - [ ] T050 `ollama_client.py` con modo gateway

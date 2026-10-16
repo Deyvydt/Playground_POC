@@ -3,8 +3,8 @@
 Guía para continuar la implementación en otra máquina. Contexto completo de la
 sesión en `RESUMEN_SESION.md`; especificación en `specs/002-llm-gateway/`.
 
-**Estado al 2026-10-14**: Fases 0, 1, 2 y 3 terminadas y probadas.
-**Faltan 5 fases: 4, 5, 6, 7 y 8.**
+**Estado al 2026-10-16**: Fases 0, 1, 2, 3 y 4 terminadas y probadas.
+**Faltan 4 fases: 5, 6, 7 y 8.**
 
 ---
 
@@ -55,9 +55,22 @@ Notas:
 
 ---
 
-## Fase 4 — Microservicio `agent-lab` (agentes LangGraph de prueba)
+## Fase 4 — Microservicio `agent-lab` (agentes LangGraph de prueba) ✅ terminada
 
-**Objetivo**: simular los sistemas Talentia (RR.HH.) y AgentFactory (Desarrollo)
+Implementada y probada de punta a punta el 2026-10-16: los dos grafos corren contra
+el modelo local vía gateway, el gasto de cada nodo aparece en `GET /gov/agents`, y
+pausar un nodo (ej. `revisor_codigo`) corta el grafo en ese nodo con mensaje claro.
+`provision.py` es idempotente (confirmado corriéndolo dos veces).
+
+Puesta en marcha en una máquina nueva: igual que gateway/governance (venv propio +
+`.env` desde `.env.example` + `SERVICE_TOKEN` igual al de governance), luego:
+```bash
+cd services/agent-lab
+.venv/Scripts/python provision.py                              # registra los 8 nodos
+.venv/Scripts/python -m uvicorn app.main:app --port 8200        # docs en /docs
+```
+
+**Objetivo** (contexto de diseño, ya aplicado): simular los sistemas Talentia (RR.HH.) y AgentFactory (Desarrollo)
 con agentes reales hechos en LangGraph que consumen el modelo **solo** vía
 gateway con virtual keys emitidas por governance. Es también el embrión de la
 Opción 1 (agentes alojados en TokenIO).
@@ -96,7 +109,7 @@ provision.py            # registra los 8 agentes en governance (X-Service-Token)
   tokens, latencia y estado (Principio III de la constitución).
 - Auth de `/lab/*`: igual que governance (copiar `app/auth.py`).
 
-**Aceptación**: correr ambos grafos → en `GET /gov/agents` sube el gasto de cada
+**Aceptación** ✅: correr ambos grafos → en `GET /gov/agents` sube el gasto de cada
 agente y de su área; pausar `revisor_codigo` en governance → la ejecución de
 AgentFactory falla en ese nodo con mensaje claro.
 

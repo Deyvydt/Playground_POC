@@ -1,4 +1,4 @@
-# Resumen de la sesión — Gobierno de LLMs en TokenIO (2026-10-14)
+# Resumen de la sesión — Gobierno de LLMs en TokenIO (2026-10-14, actualizado 2026-10-16)
 
 Contexto para retomar el trabajo en otra máquina o con otro asistente.
 Lo pendiente está en `FASES_PENDIENTES.md`.
@@ -89,6 +89,17 @@ governance :8100 ── db "governance": registro, kill switch, monitor, notific
   llamadas), webhook de alertas del gateway, notificaciones, auth delegada a
   `backend /api/auth/me` + `X-Service-Token` entre servicios.
   Todo probado de punta a punta (incluidos permisos por rol).
+- Fase 4 (2026-10-16) — `services/agent-lab/` (FastAPI :8200, base propia
+  `agentlab`): dos grafos LangGraph (Talentia con rama condicional por
+  puntaje, AgentFactory con bucle de revisión de hasta 2 rondas), un nodo = un
+  agente = una virtual key (8 en total, registrados por `provision.py` de
+  forma idempotente), keys cifradas con Fernet en `app/secrets.py`, endpoint
+  único `POST /lab/runs/{sistema}`. Probado de punta a punta en una máquina
+  nueva: los dos grafos corren contra el modelo local vía gateway, el gasto
+  sube por agente en `GET /gov/agents`, y pausar `revisor_codigo` en
+  governance corta el grafo en ese nodo con "El agente está pausado por un
+  administrador." `services/gateway/start_db.py` ahora también crea la base
+  `agentlab`.
 
 ## Problemas encontrados y soluciones (importante en la PC de TCS)
 - **Ruta larga en Windows (>260 caracteres)** al instalar LiteLLM → instalar el
@@ -120,4 +131,7 @@ governance :8100 ── db "governance": registro, kill switch, monitor, notific
 - Admin UI de LiteLLM: `http://127.0.0.1:4000/ui` (login con la master key).
 
 ## Próximo paso
-Fase 4 (agent-lab con LangGraph). Ver `FASES_PENDIENTES.md`.
+Fase 5 (los 6 agentes actuales de TokenIO pasan por el gateway). ⚠️ Toca
+código existente del backend (`ollama_client.py`, `orchestrator.py`,
+`models.py`, `seed.py`) — avisar y revisar con David antes de mezclar, según
+sus reglas de trabajo. Ver `FASES_PENDIENTES.md`.
