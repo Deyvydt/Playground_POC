@@ -2,8 +2,10 @@ import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlmodel import Session
 
-from app.database import init_db
+from app import gateway_keys
+from app.database import engine, init_db
 from app.config import CORS_ORIGIN
 from app.seed import run_seed, seed_sample_knowledge
 from app.routers import agents, auth, knowledge, chat, orchestration, metrics, users, system
@@ -15,6 +17,8 @@ logging.basicConfig(level=logging.INFO)
 async def lifespan(app: FastAPI):
     init_db()
     run_seed()
+    with Session(engine) as session:
+        await gateway_keys.register_missing(session)
     await seed_sample_knowledge()
     yield
 

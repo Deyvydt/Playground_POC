@@ -28,6 +28,7 @@ class Agent(SQLModel, table=True):
     temperature: float = 0.4
     tools: list[str] = Field(default_factory=list, sa_column=Column(JSON))
     status: str = "active"  # active | inactive
+    gateway_key_enc: Optional[str] = None  # virtual key del gateway, cifrada (Fernet)
     created_by: str = "Admin"
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None

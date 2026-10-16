@@ -2,7 +2,7 @@ import json
 import time
 from sqlmodel import Session
 from app.models import Agent, MetricLog
-from app import ollama_client, rag, tools
+from app import gateway_keys, ollama_client, rag, tools
 from app.ollama_client import ModelUnavailableError
 
 MAX_TOOL_ROUNDS = 3
@@ -40,9 +40,11 @@ async def run_agent_turn(
         session.commit()
         return latency
 
+    api_key = gateway_keys.api_key_for(agent)
+
     system_prompt = agent.role_prompt
     try:
-        retrieved = await rag.retrieve(session, agent.id, user_message)
+        retrieved = await rag.retrieve(session, agent.id, user_message, api_key=api_key)
     except ModelUnavailableError as exc:
         # Sin embeddings el agente aun puede responder; se deja constancia en la traza.
         retrieved = []
@@ -68,7 +70,7 @@ async def run_agent_turn(
     for round_idx in range(MAX_TOOL_ROUNDS):
         call_t0 = time.perf_counter()
         try:
-            result = await ollama_client.chat(agent.model, messages, agent.temperature, tool_defs)
+            result = await ollama_client.chat(agent.model, messages, agent.temperature, tool_defs, api_key=api_key)
         except ModelUnavailableError as exc:
             log_metric(False, str(exc))
             raise

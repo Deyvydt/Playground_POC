@@ -8,6 +8,13 @@ load_dotenv(BASE_DIR / ".env")
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 EMBED_MODEL = os.getenv("EMBED_MODEL", "nomic-embed-text")
 DEFAULT_CHAT_MODEL = os.getenv("DEFAULT_CHAT_MODEL", "llama3.2:3b")
+
+# Si se configura, los agentes llaman al modelo via el gateway (LiteLLM) en vez de a Ollama
+# directo (Principio I: sin esta variable, el camino directo sigue funcionando igual).
+LLM_GATEWAY_URL = os.getenv("LLM_GATEWAY_URL") or None
+GOVERNANCE_URL = os.getenv("GOVERNANCE_URL", "http://127.0.0.1:8100")
+SERVICE_TOKEN = os.getenv("SERVICE_TOKEN", "")
+GATEWAY_FERNET_KEY = os.getenv("GATEWAY_FERNET_KEY", "")
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{(BASE_DIR / 'data' / 'playground.db').as_posix()}")
 CORS_ORIGIN = os.getenv("CORS_ORIGIN", "http://localhost:5173")
 

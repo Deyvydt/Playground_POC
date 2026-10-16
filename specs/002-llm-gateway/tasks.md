@@ -33,8 +33,8 @@ Generado a partir de `plan.md`.
 - [x] T043 Alta de los 8 agentes en governance + endpoint de ejecución
 
 ## Fase 5 — Backend de TokenIO vía gateway
-- [ ] T050 `ollama_client.py` con modo gateway
-- [ ] T051 Keys de los 6 agentes y alias de modelos
+- [x] T050 `ollama_client.py` con modo gateway
+- [x] T051 Keys de los 6 agentes y alias de modelos
 
 ## Fase 6 — Langfuse
 - [ ] T060 Callbacks del gateway sin contenido + metadata por ejecución

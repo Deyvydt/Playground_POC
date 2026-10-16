@@ -100,6 +100,21 @@ governance :8100 ── db "governance": registro, kill switch, monitor, notific
   governance corta el grafo en ese nodo con "El agente está pausado por un
   administrador." `services/gateway/start_db.py` ahora también crea la base
   `agentlab`.
+- Fase 5 (2026-10-16) — los 6 agentes de TokenIO pasan por el gateway cuando
+  `backend/.env` define `LLM_GATEWAY_URL`: `ollama_client.py` gana un camino
+  por gateway (`chat()`/`embed()` con `api_key` opcional, traduce la respuesta
+  OpenAI al formato de Ollama) sin tocar el camino directo (Principio I).
+  Nuevo `backend/app/gateway_keys.py`: cifra la virtual key de cada agente
+  (Fernet, campo `Agent.gateway_key_enc`) y los da de alta en governance
+  (sistema `tokenio`, área `plataforma`) al arrancar, de forma idempotente.
+  `seed.py` usa el alias `llama-local` cuando el gateway está activo.
+  `GET /api/models` lista los alias del gateway en ese modo. Probado de
+  punta a punta: chat con tool-calling, RAG (embeddings vía `embed-local`),
+  gasto visible en `plataforma`, y pausar "Soporte TI" en governance bloquea
+  su chat con "El agente está pausado por un administrador."
+  Nota de entorno: si la base SQLite ya existía antes de esta fase, hay que
+  sumarle la columna a mano (`ALTER TABLE agent ADD COLUMN gateway_key_enc
+  TEXT`) porque SQLite no migra solo.
 
 ## Problemas encontrados y soluciones (importante en la PC de TCS)
 - **Ruta larga en Windows (>260 caracteres)** al instalar LiteLLM → instalar el
@@ -131,7 +146,9 @@ governance :8100 ── db "governance": registro, kill switch, monitor, notific
 - Admin UI de LiteLLM: `http://127.0.0.1:4000/ui` (login con la master key).
 
 ## Próximo paso
-Fase 5 (los 6 agentes actuales de TokenIO pasan por el gateway). ⚠️ Toca
-código existente del backend (`ollama_client.py`, `orchestrator.py`,
-`models.py`, `seed.py`) — avisar y revisar con David antes de mezclar, según
-sus reglas de trabajo. Ver `FASES_PENDIENTES.md`.
+Fase 6 (Langfuse). Pendiente aparte, no bloqueante: en esta máquina el puerto
+8000 del backend quedó ocupado por un proceso que ni PowerShell ni el
+terminal pueden ver ni matar (probablemente residuo de reinicios repetidos
+del backend durante la Fase 5); se validó todo en el puerto 8001 como
+alternativa. Revisar con David (Administrador de tareas) antes de levantar el
+backend de nuevo en :8000. Ver `FASES_PENDIENTES.md`.

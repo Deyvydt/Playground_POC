@@ -3,8 +3,8 @@
 Guía para continuar la implementación en otra máquina. Contexto completo de la
 sesión en `RESUMEN_SESION.md`; especificación en `specs/002-llm-gateway/`.
 
-**Estado al 2026-10-16**: Fases 0, 1, 2, 3 y 4 terminadas y probadas.
-**Faltan 4 fases: 5, 6, 7 y 8.**
+**Estado al 2026-10-16**: Fases 0, 1, 2, 3, 4 y 5 terminadas y probadas.
+**Faltan 3 fases: 6, 7 y 8.**
 
 ---
 
@@ -115,7 +115,17 @@ AgentFactory falla en ese nodo con mensaje claro.
 
 ---
 
-## Fase 5 — Los 6 agentes actuales de TokenIO pasan por el gateway
+## Fase 5 — Los 6 agentes actuales de TokenIO pasan por el gateway ✅ terminada
+
+Implementada y probada de punta a punta el 2026-10-16 (chat, tool-calling, RAG,
+`GET /api/models` con alias del gateway, gasto por agente en `plataforma`, kill
+switch con mensaje claro). Activar en una máquina nueva: agregar al `.env` del
+backend `LLM_GATEWAY_URL`, `GOVERNANCE_URL`, `SERVICE_TOKEN` (igual al de
+governance) y `GATEWAY_FERNET_KEY` propia (ver `.env.example`). Al arrancar,
+`gateway_keys.register_missing` da de alta en governance los agentes que
+todavía no tengan `gateway_key_enc`. Si la base ya existía antes de esta fase,
+sumarle la columna a mano una vez: `ALTER TABLE agent ADD COLUMN
+gateway_key_enc TEXT` (SQLite no migra solo).
 
 ⚠️ Toca código existente del backend (avisar/revisar antes de mezclar).
 
@@ -138,7 +148,7 @@ AgentFactory falla en ese nodo con mensaje claro.
 - Errores 401/422 del gateway → mensaje en español ("El agente está pausado por
   un administrador" / "El agente agotó su presupuesto").
 
-**Aceptación**: chat y flujos funcionan igual; su consumo aparece en
+**Aceptación** ✅: chat y flujos funcionan igual; su consumo aparece en
 `plataforma`; pausar "Soporte TI" en governance bloquea su chat con mensaje claro.
 
 ---

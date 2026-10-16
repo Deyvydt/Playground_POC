@@ -5,7 +5,7 @@ from app.database import get_session
 from app.models import Agent, KnowledgeDocument, KnowledgeChunk, User
 from app.ollama_client import ModelUnavailableError
 from app.security import get_current_user, require
-from app import rag
+from app import gateway_keys, rag
 
 router = APIRouter(prefix="/api/agents", tags=["knowledge"])
 
@@ -37,7 +37,8 @@ async def upload_knowledge(
     if len(raw) > MAX_UPLOAD_BYTES:
         raise HTTPException(413, "El archivo supera el límite de 10 MB")
     try:
-        return await rag.ingest_document(session, agent_id, file.filename, raw)
+        api_key = gateway_keys.api_key_for(agent)
+        return await rag.ingest_document(session, agent_id, file.filename, raw, api_key=api_key)
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
     except ModelUnavailableError as exc:

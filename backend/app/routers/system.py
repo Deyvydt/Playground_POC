@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends
-from app import ollama_client
-from app.config import EMBED_MODEL
-from app.models import User
+from sqlmodel import Session, select
+from app import gateway_keys, ollama_client
+from app.config import EMBED_MODEL, LLM_GATEWAY_URL
+from app.database import get_session
+from app.models import Agent, User
 from app.security import PERMISSIONS, get_current_user
 from app.tools import TOOL_DEFINITIONS
 
@@ -15,7 +17,16 @@ async def health():
 
 
 @router.get("/models")
-async def models(_: User = Depends(get_current_user)):
+async def models(session: Session = Depends(get_session), _: User = Depends(get_current_user)):
+    if LLM_GATEWAY_URL:
+        agent = session.exec(select(Agent).where(Agent.gateway_key_enc.is_not(None))).first()
+        if not agent:
+            return []
+        raw = await ollama_client.list_models_gateway(gateway_keys.api_key_for(agent))
+        return [
+            {"name": m.get("id"), "size": None, "family": None, "parameters": None, "embedding": m.get("id") == "embed-local"}
+            for m in raw
+        ]
     raw = await ollama_client.list_models()
     return [
         {
