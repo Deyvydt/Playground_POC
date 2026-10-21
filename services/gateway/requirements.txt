@@ -1,0 +1,7 @@
+# Versiones fijadas: 1.82.x-1.83.0 tienen un bug reportado de Prisma en Windows.
+litellm[proxy,extra_proxy]==1.105.1
+pgserver==0.1.4
+python-dotenv>=1.2.2
+httpx
+# Trazas en Langfuse (solo se usa si LANGFUSE_* está en .env)
+langfuse>=4.7,<5

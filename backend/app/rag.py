@@ -29,17 +29,24 @@ def chunk_text(text: str, size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) 
     return chunks
 
 
-async def ingest_document(session: Session, agent_id: int, filename: str, raw: bytes) -> KnowledgeDocument:
+async def ingest_document(
+    session: Session, agent_id: int, filename: str, raw: bytes, api_key: str | None = None
+) -> KnowledgeDocument:
     text = extract_text(filename, raw)
     chunks = chunk_text(text)
+    if not chunks:
+        raise ValueError("El documento no contiene texto legible")
+
+    # Se generan todos los embeddings antes de escribir: si el modelo falla a mitad,
+    # no queda un documento a medio indexar.
+    vectors = [await ollama_client.embed(chunk, api_key=api_key) for chunk in chunks]
 
     doc = KnowledgeDocument(agent_id=agent_id, filename=filename, chunk_count=len(chunks))
     session.add(doc)
     session.commit()
     session.refresh(doc)
 
-    for idx, chunk in enumerate(chunks):
-        vector = await ollama_client.embed(chunk)
+    for idx, (chunk, vector) in enumerate(zip(chunks, vectors)):
         session.add(
             KnowledgeChunk(
                 document_id=doc.id,
@@ -50,6 +57,8 @@ async def ingest_document(session: Session, agent_id: int, filename: str, raw: b
             )
         )
     session.commit()
+    # El commit expira el objeto; sin refresh la API lo serializaría como {}.
+    session.refresh(doc)
     return doc
 
 
@@ -61,11 +70,18 @@ def _cosine(a: list[float], b: list[float]) -> float:
     return float(np.dot(va, vb) / denom)
 
 
-async def retrieve(session: Session, agent_id: int, query: str, k: int = TOP_K_CHUNKS) -> list[dict]:
+async def retrieve(
+    session: Session,
+    agent_id: int,
+    query: str,
+    k: int = TOP_K_CHUNKS,
+    api_key: str | None = None,
+    metadata: dict | None = None,
+) -> list[dict]:
     chunks = session.exec(select(KnowledgeChunk).where(KnowledgeChunk.agent_id == agent_id)).all()
     if not chunks:
         return []
-    query_vec = await ollama_client.embed(query)
+    query_vec = await ollama_client.embed(query, api_key=api_key, metadata=metadata)
     scored = [
         {"content": c.content, "score": _cosine(query_vec, c.embedding), "chunk_index": c.chunk_index}
         for c in chunks

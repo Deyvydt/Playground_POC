@@ -1,0 +1,8 @@
+# Entorno único de pruebas: dependencias de los tres componentes + herramientas de prueba.
+-r ../backend/requirements.txt
+-r ../services/governance/requirements.txt
+-r ../services/agent-lab/requirements.txt
+
+pytest==9.1.1
+pytest-bdd==9.0.0
+schemathesis==4.32.2

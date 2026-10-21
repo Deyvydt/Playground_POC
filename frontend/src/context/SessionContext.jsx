@@ -1,58 +1,57 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { listUsers } from "../api/client";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { TOKEN_KEY, getToken, login as apiLogin, me } from "../api/client";
 
 const SessionContext = createContext(null);
 
-const FALLBACK_USERS = [
-  { id: 1, name: "Ana Ríos", role: "admin", avatar_emoji: "👩‍💼", title: "Gerente Regional" },
-  { id: 2, name: "Carlos Vega", role: "developer", avatar_emoji: "🧑‍💻", title: "AI Engineer" },
-  { id: 3, name: "Lucía Soto", role: "viewer", avatar_emoji: "🙋‍♀️", title: "Analista de Negocio" },
-];
+const clearToken = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
+};
 
 export function SessionProvider({ children }) {
-  const [users, setUsers] = useState(FALLBACK_USERS);
-  const [currentUser, setCurrentUser] = useState(() => {
-    const stored = localStorage.getItem("tcs-playground-user");
-    return stored ? JSON.parse(stored) : FALLBACK_USERS[0];
-  });
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => sessionStorage.getItem("tcs-playground-auth") === "1"
-  );
+  const [currentUser, setCurrentUser] = useState(null);
+  const [status, setStatus] = useState(() => (getToken() ? "checking" : "anonymous"));
 
   useEffect(() => {
-    listUsers()
-      .then((data) => {
-        if (data?.length) setUsers(data);
+    if (!getToken()) return;
+    me()
+      .then((user) => {
+        setCurrentUser(user);
+        setStatus("authenticated");
       })
-      .catch(() => {});
+      .catch(() => {
+        clearToken();
+        setStatus("anonymous");
+      });
   }, []);
 
-  const switchUser = (user) => {
-    setCurrentUser(user);
-    localStorage.setItem("tcs-playground-user", JSON.stringify(user));
+  const logout = useCallback(() => {
+    clearToken();
+    setCurrentUser(null);
+    setStatus("anonymous");
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("auth:expired", logout);
+    return () => window.removeEventListener("auth:expired", logout);
+  }, [logout]);
+
+  const login = async (email, password, remember) => {
+    const { token, user } = await apiLogin(email, password);
+    clearToken();
+    (remember ? localStorage : sessionStorage).setItem(TOKEN_KEY, token);
+    if (remember) localStorage.setItem("ap-last-email", email);
+    return () => {
+      setCurrentUser(user);
+      setStatus("authenticated");
+    };
   };
 
-  const login = (user) => {
-    switchUser(user);
-    setIsAuthenticated(true);
-    sessionStorage.setItem("tcs-playground-auth", "1");
-  };
-
-  const logout = () => {
-    setIsAuthenticated(false);
-    sessionStorage.removeItem("tcs-playground-auth");
-  };
-
-  const can = (action) => {
-    const role = currentUser?.role;
-    if (role === "admin") return true;
-    if (role === "developer") return action !== "delete" && action !== "manage_users";
-    return action === "chat"; // viewer
-  };
+  const can = (permission) => Boolean(currentUser?.permissions?.includes(permission));
 
   return (
     <SessionContext.Provider
-      value={{ users, currentUser, switchUser, can, isAuthenticated, login, logout }}
+      value={{ currentUser, setCurrentUser, status, isAuthenticated: status === "authenticated", login, logout, can }}
     >
       {children}
     </SessionContext.Provider>

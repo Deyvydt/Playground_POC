@@ -1,5 +1,18 @@
 <!--
 Sync Impact Report
+- Version: 1.1.0 -> 1.2.0 (2026-10-21)
+- Gobernanza expandida: "Calidad verificable". Todo criterio de aceptación es
+  ejecutable (escenario Gherkin o prueba técnica) o se declara manual, y un cambio
+  no está terminado si scripts/run-tests.py no pasa.
+- Corrige la línea de versión, que seguía en 1.0.0 tras la enmienda 1.1.0.
+- Specs afectadas: specs/003-test-automation/{spec,plan,tasks}.md (nuevas);
+  specs/001 y specs/002 con criterios numerados y carpeta features/.
+- Version: 1.0.0 -> 1.1.0 (2026-10-14)
+- Principle II expandido: el gateway de LLMs (LiteLLM Proxy) es el adaptador único
+  para todo consumo de modelos; ollama_client pasa a hablarle al gateway.
+- Restricciones Técnicas: se admite arquitectura de microservicios, Postgres
+  embebido (pgserver) para el gateway y LangGraph para agentes de prueba.
+- Specs afectadas: specs/002-llm-gateway/{spec,plan,tasks}.md (nuevas).
 - Version: (none) -> 1.0.0
 - Ratified: 2026-09-30
 - Principles added: I. Privacidad y Localidad de Datos, II. Independencia de Proveedores,
@@ -31,6 +44,9 @@ La capa que invoca modelos DEBE estar aislada detrás de un cliente/adaptador
 único (`ollama_client`), de forma que agregar o cambiar un proveedor de modelo
 sea un cambio localizado, no una reescritura. Un agente DEBE poder declarar su
 modelo de forma independiente de los demás.
+Desde la versión 1.1.0, todo consumo de modelos (de TokenIO o de sistemas
+cliente) DEBE pasar por el gateway de LLMs con una virtual key; las API keys
+reales de proveedores solo existen en la configuración del gateway.
 **Razón**: evita el "vendor lock-in" y permite reaccionar a cambios de precio o
 políticas de terceros con mínima fricción.
 
@@ -68,6 +84,10 @@ no el sistema final; sobre-construir retrasa la demo sin agregar valor de decisi
 - Motor de modelos: Ollama, ejecutándose en `localhost:11434`.
 - Persistencia de embeddings: SQLite (JSON) + similitud coseno en memoria — sin
   motor de base de datos vectorial dedicado, dado el volumen de datos del POC.
+- Gobierno de LLMs (`specs/002-llm-gateway`): microservicios independientes
+  (gateway LiteLLM, governance, agent-lab), cada uno con su proceso y base de
+  datos; Postgres embebido vía `pgserver` para no depender de Docker ni de
+  permisos de administrador; agentes de prueba construidos con LangGraph.
 
 ## Gobernanza
 
@@ -78,4 +98,11 @@ semver (MAYOR: retiro/redefinición incompatible de un principio; MENOR: nuevo
 principio o expansión material; PATCH: aclaración de redacción), y (3) revisar
 que `specs/*/plan.md` siga siendo consistente.
 
-**Versión**: 1.0.0 | **Ratificada**: 2026-09-30 | **Última enmienda**: 2026-09-30
+**Calidad verificable.** Cada criterio de aceptación de un spec se identifica como
+`CA-<historia>.<número>` y es ejecutable: un escenario Gherkin en
+`specs/<feature>/features/` o una prueba técnica. Lo que no se puede automatizar
+se declara como validación manual en `specs/003-test-automation/plan.md`. Un
+cambio está terminado cuando su spec está actualizado y `scripts/run-tests.py`
+termina con código 0. Una prueba que falla por un defecto real no se desactiva.
+
+**Versión**: 1.2.0 | **Ratificada**: 2026-09-30 | **Última enmienda**: 2026-10-21

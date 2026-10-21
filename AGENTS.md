@@ -5,7 +5,7 @@ repositorio. Léela antes de modificar código.
 
 ## Qué es este repositorio
 
-POC de "TCS Agent Playground": una plataforma interna para crear, probar y
+"Agent Playground" de TCS: una plataforma interna para crear, probar y
 administrar agentes de IA con modelos locales (Ollama). Ver
 `specs/001-agent-playground/spec.md` para el alcance funcional completo y
 `.specify/memory/constitution.md` para los principios no negociables del
@@ -38,13 +38,27 @@ React + Vite (frontend/, puerto 5173)
 - El frontend no tiene estado de servidor propio: todo viene de `backend/app/api`
   vía `frontend/src/api/client.js`.
 
+### Gobierno de LLMs (`services/`, spec `specs/002-llm-gateway/`)
+
+Opcional: si `backend/.env` define `LLM_GATEWAY_URL`, `ollama_client.py` llama al
+gateway LiteLLM (:4000) con la virtual key de cada agente en vez de a Ollama.
+`services/governance` (:8100) registra agentes y keys y aplica el kill switch;
+`services/agent-lab` (:8200) corre los grafos de prueba. El frontend los usa en
+las páginas Gobierno y Laboratorio (proxy `^/gov/` y `^/lab/`). Guía de operación:
+`services/README.md`; en Windows, `scripts/dev-up.ps1` levanta todo en orden.
+
+## Ramas
+
+`main` (producción) ← `staging` (QA) ← `develop` (desarrollo) ← `feature/<tema>`.
+Todo cambio entra por PR; ver `CONTRIBUTING.md`.
+
 ## Cómo correr el proyecto
 
 Ver `specs/001-agent-playground/quickstart.md` para el paso a paso completo.
 Resumen:
 ```bash
 # Backend
-cd backend && pip install -r requirements.txt && uvicorn app.main:app --reload --port 8000
+cd backend && python -m venv .venv && .venv/bin/pip install -r requirements.txt && .venv/bin/uvicorn app.main:app --reload --port 8000
 # Frontend
 cd frontend && npm install && npm run dev
 ```
@@ -58,9 +72,17 @@ descargados (este último es obligatorio para que el RAG funcione).
   comentarios explicativos de "qué hace" el código — solo el porqué cuando no es
   obvio (ver estilo ya usado en el repo).
 - **Frontend**: React funcional + hooks, sin gestor de estado global más allá de
-  `SessionContext` (RBAC simulado). Tailwind con los tokens definidos en
-  `tailwind.config.js` (`ink-*`, `mist-*`, `tcs-*`) — no introducir colores
-  sueltos fuera de esa paleta.
+  `SessionContext` (sesión y permisos) y `UIContext` (toasts y confirmaciones).
+  Tailwind con los tokens de `tailwind.config.js` (`ink-*`, `mist-*`,
+  `accent-*`) y las clases de `index.css` (`btn-*`, `input`, `card`, `label`) —
+  no introducir colores sueltos fuera de esa paleta. Íconos siempre de
+  `lucide-react` (nunca emojis); toda acción de solo ícono lleva `Tooltip`.
+- **Textos de la interfaz**: sin referencias a "POC", "prototipo", metodología o
+  detalles de implementación (RAG, embeddings, nombres de librerías). La UI se
+  presenta como producto final; ese contexto vive en la documentación.
+- **Seguridad**: toda ruta nueva de `/api` debe depender de `get_current_user` o
+  `require("<permiso>")` (`app/security.py`). Los permisos por rol están en
+  `PERMISSIONS`; el frontend los consulta con `can()`.
 - **Idioma**: toda la interfaz y los textos de cara al usuario están en español
   (audiencia interna de TCS). El código (nombres de variables/funciones) está en
   inglés salvo los nombres de herramientas (`calculadora`, `fecha_actual`, etc.)
@@ -75,12 +97,34 @@ descargados (este último es obligatorio para que el RAG funcione).
   adaptador equivalente a `ollama_client.py` — rompe el Principio II.
 - No agregar un paso del agente que no quede reflejado en la `trace` devuelta —
   rompe el Principio III (Observabilidad).
-- No introducir autenticación real, multi-tenant o un vectorstore dedicado sin
-  antes actualizar `spec.md`/`plan.md` — está explícitamente fuera de alcance de
-  esta iteración (Principio V).
+- No introducir SSO, multi-tenant o un vectorstore dedicado sin antes
+  actualizar `spec.md`/`plan.md` — está explícitamente fuera de alcance de esta
+  iteración (Principio V).
 
-## Testing manual
+## Pruebas (spec `specs/003-test-automation/`)
 
-No hay suite de tests automatizados en este POC (fuera de alcance). Antes de dar
-un cambio por terminado: levantar backend + frontend, y validar manualmente el
-flujo afectado según el guion de `quickstart.md`.
+Suite automatizada, sin Ollama ni servicios levantados:
+
+```bash
+./scripts/run-tests.sh            # Linux/macOS/CI   (Windows: .\scripts\run-tests.ps1)
+./scripts/run-tests.sh --rapido   # sin pruebas de contrato
+```
+
+El reporte se imprime completo en la terminal (veredicto, tablas, trazabilidad y
+fallas con su motivo) y también queda en `reports/reporte.html` (más `.md`, `.json`
+y JUnit). Código de salida 0 = todo pasó.
+
+- **Funcionales**: escenarios Gherkin en español en `specs/<feature>/features/*.feature`,
+  con tags `@spec-NNN @US-N @CA-N.M`; los pasos viven en `tests/<componente>/bdd/conftest.py`.
+- **Técnicas**: `tests/<componente>/{unit,api,contract}/` (contrato = Schemathesis
+  sobre el OpenAPI; ninguna solicitud debe producir un 5xx).
+- Cada componente corre en su propio proceso: no ejecutes `pytest tests` entero.
+- Ninguna prueba toca Ollama, LiteLLM ni Postgres: usar los dobles de `tests/<componente>/fakes.py`.
+
+Un cambio está terminado cuando: (1) el spec refleja el comportamiento (skill
+`sdd-specs`), (2) cada criterio nuevo tiene escenario o prueba (skill `sdd-pruebas`
+o agente `disenador-pruebas`), (3) `run-tests` pasa. Si el cambio toca la
+interfaz, valida además el flujo a mano según `quickstart.md`.
+
+Pruebas con servicios reales (Ollama, LiteLLM, proveedores y sistemas de otros
+equipos en la red local): plan en `specs/004-system-integration/`.

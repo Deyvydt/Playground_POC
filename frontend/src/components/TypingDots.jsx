@@ -4,7 +4,7 @@ export default function TypingDots() {
       {[0, 1, 2].map((i) => (
         <span
           key={i}
-          className="h-1.5 w-1.5 rounded-full bg-mist-400 animate-pulseSoft"
+          className="h-1.5 w-1.5 rounded-full bg-accent animate-pulseSoft"
           style={{ animationDelay: `${i * 0.15}s` }}
         />
       ))}

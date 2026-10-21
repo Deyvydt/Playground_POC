@@ -1,48 +1,33 @@
-# TCS Agent Playground — Prototipo (POC)
+# Agent Playground · TCS
 
-Entorno propio para **crear, probar, conectar con conocimiento interno y
-administrar agentes de IA**, corriendo sobre modelos locales (sin depender de
-un playground público de terceros).
+Plataforma para **crear, probar, conectar con conocimiento interno y
+administrar agentes de IA** sobre modelos que corren en infraestructura propia
+(Ollama), sin depender de un playground público de terceros.
 
-Prototipo desarrollado para presentar la propuesta a la Gerencia Regional:
-demuestra con funcionalidad real — no mockups — por qué construir una
-plataforma propia de agentes tiene sentido para TCS.
+## Capacidades
 
-## Por qué esto importa
-
-| Beneficio | Cómo lo demuestra este POC |
+| Área | Qué permite |
 |---|---|
-| Privacidad de datos | Los modelos corren localmente (Ollama); nada sale de la máquina/infraestructura de TCS |
-| Independencia de proveedores | El modelo de cada agente se elige por configuración, no está acoplado al código |
-| Colaboración multi-agente | Un flujo real encadena un agente "Analista" con un agente "Redactor" |
-| Personalización absoluta | Interfaz propia, en español, con la identidad visual de TCS |
-| Costo | $0 marginal por consulta (modelos locales) vs. el costo por token de una API comercial |
+| **Inicio** | Resumen del consumo de tokens, costo evitado frente a la nube, agentes más usados y actividad reciente |
+| **Agentes** | Crear y configurar agentes: instrucciones, modelo, temperatura, herramientas; pausar/activar |
+| **Conversación** | Chat con historial por usuario y "Ver razonamiento": instrucciones usadas, fragmentos recuperados, llamadas al modelo y herramientas |
+| **Conocimiento** | Subir documentos (PDF/TXT/MD) para que el agente responda con información interna |
+| **Flujos** | Encadenar agentes; cada respuesta alimenta al siguiente, con progreso en vivo |
+| **Consumo** | Tokens de entrada/salida, latencia, errores y costo de referencia por agente, usuario y modelo (7/30/90 días) |
+| **Usuarios** | Cuentas con correo y contraseña, roles Administrador / Desarrollador / Usuario, activar o desactivar acceso |
 
-## Las 4 áreas funcionales
+Los permisos se validan en el servidor. Atajos: `Ctrl+K` buscador global,
+`Ctrl+B` plegar el menú lateral.
 
-1. **Agentes** — creación y configuración: rol (prompt de sistema), modelo,
-   temperatura y herramientas (function calling).
-2. **Conocimiento (RAG)** — subir documentos internos; el agente responde con
-   esa información, con trazabilidad de qué fragmento usó y su similitud.
-3. **Playground** — chat en vivo con inspección paso a paso del razonamiento
-   del agente (prompt usado, recuperación RAG, llamadas a herramientas).
-4. **Panel / RBAC** — consumo de tokens, latencia y costo por agente; control
-   de accesos simulado por rol (Administrador / Desarrollador / Solo lectura).
+## Stack
 
-## Stack técnico
-
-- **Modelos**: [Ollama](https://ollama.com) local — `llama3.2:3b`, `mistral`,
-  `nomic-embed-text` (embeddings para RAG).
+- **Modelos**: [Ollama](https://ollama.com) — `llama3.2:3b`, `mistral`,
+  `nomic-embed-text` (embeddings).
 - **Backend**: Python + FastAPI + SQLModel + SQLite.
-- **Frontend**: React + Vite + Tailwind CSS + Recharts + Framer Motion.
-- **Metodología**: Spec-Driven Development (SDD) siguiendo la estructura de
-  [GitHub Spec Kit](https://github.com/github/spec-kit).
+- **Frontend**: React + Vite + Tailwind CSS + Recharts + Framer Motion, fuentes
+  autoalojadas (Geist, Instrument Serif) e íconos lucide.
 
 ## Cómo correrlo
-
-Ver la guía completa en
-[`specs/001-agent-playground/quickstart.md`](specs/001-agent-playground/quickstart.md).
-Resumen:
 
 ```bash
 # 1) Modelos locales
@@ -50,6 +35,7 @@ ollama pull llama3.2:3b && ollama pull mistral && ollama pull nomic-embed-text
 
 # 2) Backend
 cd backend
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 
@@ -59,32 +45,38 @@ npm install
 npm run dev
 ```
 
-Abrir `http://localhost:5173`.
+Abrir `http://localhost:5173` e iniciar sesión:
 
-## Documentación (SDD)
+| Correo | Rol | Contraseña |
+|---|---|---|
+| `ana.rios@tcs.com` | Administrador | `Tcs2026!` |
+| `carlos.vega@tcs.com` | Desarrollador | `Tcs2026!` |
+| `lucia.soto@tcs.com` | Usuario | `Tcs2026!` |
+
+Guion de demo y solución de problemas en
+[`specs/001-agent-playground/quickstart.md`](specs/001-agent-playground/quickstart.md).
+
+## Documentación
 
 | Documento | Contenido |
 |---|---|
-| [`.specify/memory/constitution.md`](.specify/memory/constitution.md) | Principios no negociables del proyecto |
+| [`.specify/memory/constitution.md`](.specify/memory/constitution.md) | Principios del proyecto |
 | [`specs/001-agent-playground/spec.md`](specs/001-agent-playground/spec.md) | Historias de usuario y criterios de aceptación |
 | [`specs/001-agent-playground/plan.md`](specs/001-agent-playground/plan.md) | Arquitectura y decisiones técnicas |
-| [`specs/001-agent-playground/research.md`](specs/001-agent-playground/research.md) | Alternativas evaluadas y por qué se descartaron |
+| [`specs/001-agent-playground/research.md`](specs/001-agent-playground/research.md) | Alternativas evaluadas |
 | [`specs/001-agent-playground/data-model.md`](specs/001-agent-playground/data-model.md) | Entidades y relaciones |
 | [`specs/001-agent-playground/contracts/api.md`](specs/001-agent-playground/contracts/api.md) | Contrato de la API REST |
-| [`specs/001-agent-playground/tasks.md`](specs/001-agent-playground/tasks.md) | Desglose de tareas y estado |
-| [`AGENTS.md`](AGENTS.md) | Guía para agentes de IA que contribuyan a este repo |
+| [`specs/001-agent-playground/tasks.md`](specs/001-agent-playground/tasks.md) | Tareas y estado |
+| [`AGENTS.md`](AGENTS.md) | Guía para agentes de IA que contribuyan al repo |
 
-## Alcance y límites de este POC
+## Siguientes pasos
 
-Es un prototipo de evaluación, no un sistema productivo. Explícitamente fuera
-de alcance por ahora (ver `spec.md`): autenticación real / SSO corporativo,
-multi-tenant, proveedores de modelo en la nube, vectorstore dedicado a gran
-escala y streaming token-a-token. El siguiente paso natural, si la Gerencia
-aprueba la iniciativa, es priorizar ese backlog para una versión productiva.
+SSO corporativo en lugar del login local, adaptador para modelos en la nube
+detrás de `ollama_client.py`, streaming token a token y un vectorstore
+dedicado para bases de conocimiento grandes (ver backlog en `tasks.md`).
 
 ## Nota sobre la marca
 
-El logo de TCS incluido (`frontend/public/tcs-logo.svg`) proviene del archivo
-público en Wikimedia Commons y se usa aquí únicamente con fines de
-demostración interna. Para cualquier uso más allá de este POC, reemplazar por
-el asset oficial de la marca obtenido internamente.
+El logo de TCS (`frontend/public/tcs-logo.svg`, `tcs-mark.svg`) proviene del
+archivo público en Wikimedia Commons. Para uso fuera de la organización,
+reemplazarlo por el asset oficial obtenido internamente.

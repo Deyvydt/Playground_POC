@@ -2,7 +2,7 @@
 
 **Feature branch**: `001-agent-playground`
 **Creado**: 2026-09-30
-**Estado**: Borrador para revisión de negocio (POC)
+**Estado**: Iteración 3 — producto demostrable con autenticación, consumo detallado y pruebas automatizadas
 **Entrada**: "Un playground propio para administrar agentes internos de TCS: crear,
 probar, monitorear y gestionar agentes de IA de forma centralizada, con modelos
 locales, RAG, herramientas, trazabilidad y control de accesos."
@@ -25,6 +25,9 @@ se invierte en una versión productiva.
 
 ## Historias de Usuario (por prioridad)
 
+Cada criterio se identifica como `CA-<historia>.<número>` (ej. CA-2.3 = US-2, criterio 3)
+y se automatiza como escenario Gherkin en `features/` (ver `specs/003-test-automation/`).
+
 ### US-1 — Crear y configurar un agente (Prioridad: P1)
 Como Desarrollador, quiero definir el rol (prompt de sistema), el modelo y las
 herramientas de un agente, para adaptarlo a una necesidad interna específica sin
@@ -36,7 +39,8 @@ escribir código.
    de inmediato en el playground.
 2. Dado un agente existente, cuando edito su prompt o modelo, entonces sus
    próximas conversaciones usan la nueva configuración.
-3. Un usuario con rol "solo lectura" NO puede ver el botón de creación/edición.
+3. Un usuario con rol "solo lectura" NO puede crear ni editar agentes: el servidor
+   rechaza la acción (403) y la interfaz oculta los botones.
 
 ### US-2 — Conversar con un agente y ver su razonamiento (Prioridad: P1)
 Como cualquier usuario autorizado, quiero chatear con un agente y ver qué hizo
@@ -49,6 +53,8 @@ confiar en su respuesta y poder depurarla.
 2. Puedo expandir una "traza" que muestra, en orden, cada paso de razonamiento.
 3. Si el agente usa una herramienta (ej. calculadora), veo el argumento enviado
    y el resultado devuelto.
+4. Si el motor de modelos no responde, recibo un mensaje claro (503) y el intento
+   queda registrado como solicitud fallida en el consumo.
 
 ### US-3 — Responder con conocimiento interno (RAG) (Prioridad: P1)
 Como Desarrollador, quiero subir un documento interno (manual, PDF, texto) a un
@@ -59,7 +65,10 @@ respuestas.
 1. Al subir un archivo, el sistema lo fragmenta y lo indexa (embeddings locales).
 2. Al preguntar algo relacionado, la respuesta refleja el contenido del
    documento y la traza muestra los fragmentos recuperados con su similitud.
-3. Si no hay información relevante, el agente lo indica en vez de inventar.
+3. Si no hay información relevante, el agente lo indica en vez de inventar
+   (depende del modelo: se valida manualmente).
+4. Solo se aceptan documentos PDF, TXT o MD; otros formatos se rechazan con un
+   mensaje claro.
 
 ### US-4 — Orquestar varios agentes en un flujo (Prioridad: P2)
 Como Desarrollador, quiero encadenar un agente "Analista" con un agente
@@ -77,10 +86,25 @@ generó cada agente, y comparar el costo de modelos locales contra una
 referencia de mercado en la nube, para justificar la inversión.
 
 **Criterios de aceptación**:
-1. El panel muestra solicitudes, tokens y latencia promedio, global y por
-   agente, con datos reales de uso (no de ejemplo estático).
+1. El panel muestra solicitudes, tokens (entrada/salida) y latencia promedio,
+   global y por agente, modelo y usuario, filtrable por periodo (7/30/90 días).
+   En una instalación nueva se siembra un historial de 30 días
+   (`SEED_DEMO_ACTIVITY`) para que el panel tenga contexto; el uso real se suma
+   encima.
 2. El panel muestra el costo local ($0 marginal) frente a un costo de
    referencia estimado si se usara una API comercial equivalente.
+
+### US-7 — Iniciar sesión y administrar usuarios (Prioridad: P2)
+Como Administrador, quiero que cada persona entre con su propia cuenta y poder
+crear, editar, desactivar o eliminar cuentas, para controlar quién usa la
+plataforma y con qué rol.
+
+**Criterios de aceptación**:
+1. Solo se accede con correo y contraseña válidos; las contraseñas se guardan
+   con hash, nunca en texto plano.
+2. El Administrador crea cuentas asignando un rol y una contraseña temporal.
+3. Una cuenta desactivada no puede iniciar sesión.
+4. Los permisos se validan en el servidor, no solo ocultando botones.
 
 ### US-6 — Controlar accesos por rol (RBAC) (Prioridad: P3)
 Como Administrador, quiero que solo ciertos roles puedan crear, editar o
@@ -90,10 +114,13 @@ eliminar agentes, para evitar cambios no autorizados.
 1. Un usuario "solo lectura" puede chatear pero no ve acciones de edición.
 2. Un usuario "desarrollador" puede crear/editar pero no eliminar agentes.
 3. Un usuario "administrador" tiene acceso completo.
+4. Solo el administrador puede pausar agentes y emitir keys del gateway
+   (permiso `govern`, ver spec 002).
 
 ## Fuera de Alcance (explícito)
 
-- Autenticación real / integración con SSO o Active Directory corporativo.
+- Integración con SSO o Active Directory corporativo (el login actual usa
+  credenciales locales con hash; el SSO queda como siguiente paso).
 - Múltiples organizaciones/tenants o facturación real.
 - Modelos en la nube (OpenAI/Anthropic/etc.) — queda como extensión futura ya
   prevista en la arquitectura (Principio II de la constitución).
@@ -104,6 +131,6 @@ eliminar agentes, para evitar cambios no autorizados.
 
 - Un desarrollador puede crear un agente funcional en menos de 2 minutos durante
   la demo, sin tocar código.
-- La Gerencia Regional puede, sin ayuda técnica, identificar las 4 capacidades
-  clave y su beneficio de negocio solo con la pantalla de "Resumen".
+- La Gerencia Regional puede, sin ayuda técnica, ver desde "Inicio" el consumo
+  de tokens, la actividad reciente y los agentes más usados.
 - El costo marginal por interacción demostrado es $0 (modelos 100% locales).

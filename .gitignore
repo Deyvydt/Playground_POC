@@ -18,3 +18,12 @@ Thumbs.db
 
 # Claude
 .claude/settings.local.json
+
+# Servicios de gobierno de LLMs
+services/**/.env
+services/.data/
+
+# Pruebas automatizadas (scripts/run-tests.*)
+reports/
+.venv-tests/
+.hypothesis/

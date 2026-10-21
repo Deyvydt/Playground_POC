@@ -1,0 +1,52 @@
+# Configuración del gateway de LLMs (LiteLLM Proxy).
+# Los clientes solo ven los alias de `model_name`; las URLs internas y las API keys
+# reales viven aquí y en .env (nunca en el repositorio).
+# Access groups: una key o team con models: ["local-models"] puede usar todos
+# los modelos del grupo; agregar un modelo al grupo no requiere editar keys.
+
+model_list:
+  # --- Modelos locales (Ollama) ---
+  # Costo interno > 0: con costo 0 LiteLLM omite el chequeo de presupuesto.
+  - model_name: llama-local
+    litellm_params:
+      model: ollama_chat/llama-3.2-3b-it:latest
+      api_base: os.environ/OLLAMA_API_BASE
+    model_info:
+      access_groups: ["local-models"]
+      input_cost_per_token: 0.0000002
+      output_cost_per_token: 0.0000004
+
+  - model_name: embed-local
+    litellm_params:
+      model: ollama/gte-large:latest
+      api_base: os.environ/OLLAMA_API_BASE
+    model_info:
+      mode: embedding
+      access_groups: ["local-models"]
+      input_cost_per_token: 0.00000002
+      output_cost_per_token: 0
+
+  # --- Proveedores en la nube (descomentar cuando haya API keys reales en .env) ---
+  # Dos deployments con el mismo model_name = balanceo de carga entre dos keys.
+  # - model_name: claude-sonnet
+  #   litellm_params:
+  #     model: anthropic/<id-del-modelo>
+  #     api_key: os.environ/ANTHROPIC_API_KEY_1
+  #   model_info:
+  #     access_groups: ["cloud-models"]
+  # - model_name: claude-sonnet
+  #   litellm_params:
+  #     model: anthropic/<id-del-modelo>
+  #     api_key: os.environ/ANTHROPIC_API_KEY_2
+  #   model_info:
+  #     access_groups: ["cloud-models"]
+
+router_settings:
+  routing_strategy: simple-shuffle
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL
+  # Avisos de presupuesto (umbral y exceso) hacia governance vía WEBHOOK_URL.
+  alerting: ["webhook"]
+  alert_types: ["budget_alerts"]

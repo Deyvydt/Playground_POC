@@ -27,8 +27,8 @@ de Ollama) antes de continuar.
 Desde la raíz del repo:
 ```bash
 cd backend
-pip install -r requirements.txt   # solo si es la primera vez o cambiaron dependencias
-uvicorn app.main:app --reload --port 8000
+python -m venv .venv && .venv/bin/pip install -r requirements.txt   # solo la primera vez
+.venv/bin/uvicorn app.main:app --reload --port 8000
 ```
 Ejecutar en segundo plano (background) para no bloquear la terminal. Confirmar
 con `curl http://localhost:8000/api/health` que responde
@@ -46,9 +46,9 @@ Confirmar que Vite reporta el servidor en `http://localhost:5173`.
 
 ## 4. Verificación rápida antes de la demo
 
-- Abrir `http://localhost:5173` → debe cargar la pantalla "Resumen" con el logo
-  de TCS y sin errores en consola.
-- El badge de estado en la esquina superior derecha debe decir "Ollama conectado".
+- Abrir `http://localhost:5173` → debe cargar el login con el logo de TCS.
+  Entrar con `ana.rios@tcs.com` / `Tcs2026!`.
+- El indicador superior derecho debe decir "Motor de modelos en línea".
 - Entrar a un agente (ej. "Soporte TI") y enviar un mensaje de prueba en la
   pestaña Playground para confirmar que el modelo responde.
 
