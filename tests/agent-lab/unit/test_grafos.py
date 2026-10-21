@@ -5,6 +5,12 @@ import pytest
 from app.graphs import agentfactory, talentia
 
 
+@pytest.mark.limites
+@pytest.mark.limites
+@pytest.mark.tabla_decision
+@pytest.mark.particion
+@pytest.mark.limites
+@pytest.mark.tabla_decision
 @pytest.mark.parametrize("texto, puntaje", [("85", 85), ("Puntaje: 72/100", 72), ("150", 100), ("sin número", 0)])
 def test_parse_puntaje_extrae_el_primer_numero_entre_0_y_100(texto, puntaje):
     assert talentia._parse_puntaje(texto) == puntaje
@@ -43,6 +49,7 @@ def _run(grafo, **estado):
     return asyncio.run(grafo.build_graph().ainvoke({"run_id": "run-1", "trace": [], **estado}))
 
 
+@pytest.mark.limites
 def test_agentfactory_sin_aprobacion_del_revisor_se_detiene_tras_el_maximo_de_rondas(model):
     resultado = _run(agentfactory, requerimiento="endpoint", ronda=0, observaciones="")
     assert model.path.count("generador_codigo") == agentfactory.MAX_RONDAS

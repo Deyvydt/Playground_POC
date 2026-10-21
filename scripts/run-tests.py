@@ -33,6 +33,16 @@ COMPONENTES = {
 }
 ESTADOS = {"passed": "Pasó", "failed": "Falló", "error": "Error", "skipped": "Omitida"}
 NIVELES = ["unitaria", "api", "contrato", "aceptacion"]
+TECNICAS = {
+    "particion": "Partición de equivalencias",
+    "limites": "Valores límite",
+    "tabla_decision": "Tabla de decisión",
+    "transicion_estados": "Transición de estados",
+    "propiedades": "Basada en propiedades (fuzzing)",
+    "ejemplos": "Especificación por ejemplos (BDD)",
+    "adivinanza_errores": "Adivinanza de errores",
+    "regresion": "Regresión de defectos",
+}
 
 
 def parse_args():
@@ -42,6 +52,7 @@ def parse_args():
                         help="Repetible. Por defecto, todos los componentes.")
     parser.add_argument("--rapido", action="store_true", help="Omite las pruebas de contrato (Schemathesis).")
     parser.add_argument("--salida", default="reports", help="Carpeta de reportes (relativa al repositorio).")
+    parser.add_argument("--lista", action="store_true", help="Muestra en la terminal cada prueba con su resultado.")
     return parser.parse_args()
 
 
@@ -205,6 +216,10 @@ def reporte_md(r: dict) -> str:
         niveles[(p["tipo"], p["nivel"])][p["resultado"]] += 1
     for (tipo, nivel), c in sorted(niveles.items(), key=lambda kv: (kv[0][0], NIVELES.index(kv[0][1]))):
         lines.append(f"| {tipo} | {nivel} | {c['passed']} | {sum(c.values())} |")
+    tecnicas = Counter(tec for p in r["pruebas"] for tec in p.get("tecnicas", []))
+    if tecnicas:
+        lines += ["", "| Técnica de diseño | Pruebas |", "|---|---:|"]
+        lines += [f"| {TECNICAS.get(k, k)} | {v} |" for k, v in tecnicas.most_common()]
     if r["trazabilidad"]:
         lines += ["", "## Trazabilidad de historias de usuario", "",
                   "| Spec | Historia | Estado | Escenarios | Criterios |", "|---|---|---|---:|---|"]
@@ -277,6 +292,10 @@ def reporte_html(r: dict) -> str:
         f"<td>{e(p['titulo'])}<br><span class=muted>{e(' '.join(p['tags']))}</span></td><td class=n>{p['duracion']:.2f} s</td></tr>"
         for p in sorted(r["pruebas"], key=lambda p: (p["resultado"] == "passed", p["componente"], p["id"])))
 
+    tecnicas = Counter(tec for p in r["pruebas"] for tec in p.get("tecnicas", []))
+    tecnicas_html = ("<h2>Por técnica de diseño</h2><div class=table-wrap><table><tr><th>Técnica</th><th>Pruebas</th></tr>"
+                     + "".join(f"<tr><td>{e(TECNICAS.get(k, k))}</td><td class=n>{v}</td></tr>" for k, v in tecnicas.most_common())
+                     + "</table></div>") if tecnicas else ""
     traza_html = (f"<h2>Trazabilidad de historias de usuario</h2><div class=table-wrap><table><tr><th>Spec</th><th>Historia</th>"
                   f"<th>Estado</th><th>Escenarios</th><th>Criterios / nota</th></tr>{traza}</table></div>") if traza else ""
     return f"""<!doctype html>
@@ -289,6 +308,7 @@ def reporte_html(r: dict) -> str:
 <div class=kpis>{kpi('Pasaron', t['pasaron'])}{kpi('Fallaron', t['fallaron'])}{kpi('Con error', t['errores'])}{kpi('Omitidas', t['omitidas'])}</div>
 <h2>Por componente</h2><div class=table-wrap><table><tr><th>Componente</th><th>Pasaron</th><th>Fallaron</th><th>Errores</th><th>Omitidas</th><th>Duración</th></tr>{suites}</table></div>
 <h2>Por tipo y nivel</h2><div class=table-wrap><table><tr><th>Tipo</th><th>Nivel</th><th>Pasaron</th><th>Fallaron</th><th>Total</th></tr>{filas_nivel}</table></div>
+{tecnicas_html}
 {traza_html}
 {'<h2>Fallas</h2>' + fallas if fallas else ''}
 <h2>Todas las pruebas</h2><input id=q placeholder="Filtrar por componente, nombre o tag (ej. US-4, contrato, governance)…">
@@ -300,36 +320,161 @@ document.querySelectorAll('#t tr[data-q]').forEach(function(r){{r.style.display=
 """
 
 
+# --- Terminal ---------------------------------------------------------------------------
+
+class Colores:
+    def __init__(self, activo: bool):
+        self.activo = activo
+
+    def _c(self, code, texto):
+        return f"\033[{code}m{texto}\033[0m" if self.activo else str(texto)
+
+    def ok(self, t): return self._c("32", t)
+    def mal(self, t): return self._c("31", t)
+    def aviso(self, t): return self._c("33", t)
+    def tenue(self, t): return self._c("2", t)
+    def fuerte(self, t): return self._c("1", t)
+
+
+def _colores() -> Colores:
+    if os.getenv("NO_COLOR"):
+        return Colores(False)
+    activo = bool(os.getenv("FORCE_COLOR")) or sys.stdout.isatty()
+    if activo and os.name == "nt":
+        os.system("")  # habilita secuencias ANSI en la consola de Windows
+    return Colores(activo)
+
+
+def _tabla(c: Colores, titulo: str, columnas: list[str], filas: list[list], derecha: set[int] = frozenset()) -> list[str]:
+    anchos = [max(len(_sin_ansi(str(x))) for x in [col] + [f[i] for f in filas]) for i, col in enumerate(columnas)]
+
+    def linea(valores, estilo=lambda x: x):
+        celdas = []
+        for i, v in enumerate(valores):
+            relleno = " " * (anchos[i] - len(_sin_ansi(str(v))))
+            celdas.append(relleno + str(v) if i in derecha else str(v) + relleno)
+        return "  " + estilo("  ".join(celdas))
+
+    return ["", c.fuerte(f" {titulo}"), linea(columnas, c.tenue), *[linea(f) for f in filas]]
+
+
+_ANSI = re.compile(r"\033\[[0-9;]*m")
+
+
+def _sin_ansi(texto: str) -> str:
+    return _ANSI.sub("", texto)
+
+
+def _corto(texto: str, n: int) -> str:
+    return texto if len(texto) <= n else texto[: n - 1] + "…"
+
+
+def _error_resumido(detalle: str) -> list[str]:
+    """Las líneas 'E ...' de pytest (el motivo) y la ubicación de la falla."""
+    lineas = detalle.strip().splitlines()
+    motivo = [l[1:].strip() for l in lineas if l.startswith("E ")][:6]
+    ubicacion = next((l.strip() for l in reversed(lineas) if re.match(r"^\S+\.py:\d+", l.strip())), "")
+    return motivo or lineas[-4:], ubicacion
+
+
+def reporte_terminal(r: dict, c: Colores, salida: Path, listar: bool) -> str:
+    t = r["totales"]
+    simbolo = {"PASÓ": c.ok("✔ PASÓ"), "FALLÓ": c.mal("✘ FALLÓ")}.get(r["veredicto"], c.aviso("⚠ " + r["veredicto"]))
+    barra = "═" * 78
+    out = [
+        "", c.fuerte(barra),
+        c.fuerte(f" REPORTE DE PRUEBAS · TokenIO") + c.tenue(f"   {r['fecha'].replace('T', ' ')} · tipo: {r['filtros']['tipo']}"
+                                                         + (" · sin contrato" if r["filtros"]["rapido"] else "")),
+        c.fuerte(barra),
+        f" Veredicto: {c.fuerte(simbolo)}   {t['pasaron']}/{t['total']} pasaron · {t['fallaron']} fallaron · "
+        f"{t['errores']} con error · {t['omitidas']} omitidas · {r['duracion']} s",
+    ]
+
+    def num(n, malo=False):
+        return (c.mal(n) if malo and n else c.tenue(n) if not n else n)
+
+    out += _tabla(c, "Por componente", ["Componente", "Pasaron", "Fallaron", "Errores", "Omitidas", "Duración"], [
+        [s["componente"] + ("" if s["ejecutada"] else c.mal(" (no se ejecutó)")), num(s["passed"]),
+         num(s["failed"], True), num(s["error"], True), num(s["skipped"]), f"{s['duracion']} s"] for s in r["suites"]
+    ], derecha={1, 2, 3, 4, 5})
+
+    niveles = defaultdict(Counter)
+    for p in r["pruebas"]:
+        niveles[(p["tipo"], p["nivel"])][p["resultado"]] += 1
+    out += _tabla(c, "Por tipo y nivel", ["Tipo", "Nivel", "Pasaron", "Fallaron", "Total"], [
+        ["Funcional" if tipo == "funcional" else "Técnica", nivel, num(cnt["passed"]),
+         num(cnt["failed"] + cnt["error"], True), sum(cnt.values())]
+        for (tipo, nivel), cnt in sorted(niveles.items(), key=lambda kv: (kv[0][0], NIVELES.index(kv[0][1])))
+    ], derecha={2, 3, 4})
+
+    tecnicas = Counter(tec for p in r["pruebas"] for tec in p.get("tecnicas", []))
+    if tecnicas:
+        out += _tabla(c, "Por técnica de diseño", ["Técnica", "Pruebas"],
+                      [[TECNICAS.get(k, k), v] for k, v in tecnicas.most_common()], derecha={1})
+
+    if r["trazabilidad"]:
+        marca = {"passed": c.ok("✔ cubierta"), "failed": c.mal("✘ falla"), "skipped": c.aviso("○ omitida"),
+                 "manual": c.aviso("◐ manual"), "sin_escenarios": c.mal("✘ sin escenarios")}
+        out += _tabla(c, "Trazabilidad de historias de usuario", ["Spec", "Historia", "", "Estado", "Esc.", "Criterios"], [
+            [f["spec"], f["historia"], _corto(f["titulo"], 40), marca[f["estado"]], f"{f['pasaron']}/{f['escenarios']}",
+             _corto(", ".join(f["criterios"]) or f["nota"].replace("`", ""), 46)] for f in r["trazabilidad"]
+        ], derecha={4})
+
+    if listar:
+        for comp in r["filtros"]["componentes"]:
+            out += ["", c.fuerte(f" Pruebas de {comp}")]
+            for p in sorted((p for p in r["pruebas"] if p["componente"] == comp), key=lambda p: p["id"]):
+                icono = {"passed": c.ok("✔"), "skipped": c.aviso("○")}.get(p["resultado"], c.mal("✘"))
+                out.append(f"  {icono} {c.tenue(p['nivel'][:10].ljust(10))} {_corto(p['titulo'], 90)}")
+
+    if r["fallas"]:
+        out += ["", c.mal(c.fuerte(f" Fallas ({len(r['fallas'])})"))]
+        for f in r["fallas"]:
+            motivo, ubicacion = _error_resumido(f["detalle"])
+            out.append(f"  {c.mal('✘')} [{f['componente']}] {c.fuerte(f['titulo'])}")
+            out.append(f"    {c.tenue(f['id'])}")
+            out += [f"    {c.mal(l)}" for l in motivo]
+            if ubicacion:
+                out.append(f"    {c.tenue(ubicacion)}")
+    for s in r["suites"]:
+        if not s["ejecutada"]:
+            out.append(c.mal(f"  ✘ La suite {s['componente']} no se pudo ejecutar: revisa {salida / ('log-' + s['componente'] + '.txt')}"))
+
+    out += ["", c.tenue(f" Reportes en {salida}: reporte.html · reporte.md · resumen.json · junit-*.xml"), c.fuerte(barra), ""]
+    return "\n".join(out)
+
+
 def main() -> int:
     args = parse_args()
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    colores = _colores()
     salida = (REPO / args.salida).resolve()
     salida.mkdir(parents=True, exist_ok=True)
     componentes = args.componente or list(COMPONENTES)
 
-    print(f"Pruebas de TokenIO · tipo: {args.tipo}{' · sin contrato' if args.rapido else ''}")
+    print(colores.fuerte(f"Pruebas de TokenIO · tipo: {args.tipo}{' · sin contrato' if args.rapido else ''}"))
     suites = []
     for nombre in componentes:
-        print(f"  {nombre:<11} ", end="", flush=True)
+        if sys.stdout.isatty():
+            print(f"  {nombre:<11} ejecutando…", end="\r", flush=True)
         suite = run_suite(nombre, COMPONENTES[nombre], args, salida)
-        c = Counter(p["resultado"] for p in suite["pruebas"])
-        estado = "no se ejecutó (ver log)" if not suite["ejecutada"] else \
-            f"{c['passed']} pasaron, {c['failed']} fallaron, {c['error']} errores, {c['skipped']} omitidas"
-        print(f"{estado} · {suite['duracion']} s")
+        cnt = Counter(p["resultado"] for p in suite["pruebas"])
+        if not suite["ejecutada"]:
+            estado = colores.mal("no se ejecutó (ver log)")
+        elif cnt["failed"] or cnt["error"]:
+            estado = colores.mal(f"✘ {cnt['passed']} pasaron, {cnt['failed']} fallaron, {cnt['error']} con error")
+        else:
+            estado = colores.ok(f"✔ {cnt['passed']} pasaron") + (colores.aviso(f", {cnt['skipped']} omitidas") if cnt["skipped"] else "")
+        print(f"  {nombre:<11} {estado} {colores.tenue('· ' + str(suite['duracion']) + ' s')}   ")
         suites.append(suite)
 
     resultado = consolidar(suites, args)
     (salida / "resumen.json").write_text(json.dumps(resultado, ensure_ascii=False, indent=1), encoding="utf-8")
     (salida / "reporte.md").write_text(reporte_md(resultado), encoding="utf-8")
     (salida / "reporte.html").write_text(reporte_html(resultado), encoding="utf-8")
+    print(reporte_terminal(resultado, colores, salida, args.lista))
 
-    t = resultado["totales"]
-    print(f"\nVeredicto: {resultado['veredicto']} · {t['pasaron']}/{t['total']} pasaron")
-    for falla in resultado["fallas"]:
-        print(f"  ✗ [{falla['componente']}] {falla['id']}")
-    pendientes = [f for f in resultado["trazabilidad"] if f["estado"] == "sin_escenarios"]
-    for f in pendientes:
-        print(f"  ! spec {f['spec']} {f['historia']} no tiene escenarios ni validación manual declarada")
-    print(f"Reporte: {salida / 'reporte.html'}")
     if resultado["suites_no_ejecutadas"]:
         return 2
     return 1 if resultado["veredicto"] == "FALLÓ" else 0

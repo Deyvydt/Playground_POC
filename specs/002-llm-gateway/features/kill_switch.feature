@@ -8,7 +8,7 @@ Característica: Kill switch y auto-pausa con aviso
     Dado que soy un usuario de governance con rol "admin"
     Y que registré el agente "Agente Vigilado" en el sistema "talentia"
 
-  @CA-4.1
+  @CA-4.1 @transicion_estados
   Escenario: Pausar bloquea la key y reactivar la desbloquea
     Cuando pauso el agente con el motivo "Consumo anómalo"
     Entonces el agente queda "pausado" con el motivo "Consumo anómalo"
@@ -24,7 +24,7 @@ Característica: Kill switch y auto-pausa con aviso
     Entonces la respuesta tiene el código 403
     Y su key no está bloqueada en el gateway
 
-  @CA-4.2
+  @CA-4.2 @limites @transicion_estados
   Escenario: Se pausa solo al superar su presupuesto
     Dado que el gateway reporta para el agente un gasto de 1.2 de 1.0
     Cuando corre el monitor
@@ -38,13 +38,13 @@ Característica: Kill switch y auto-pausa con aviso
     Entonces el agente queda "pausado"
     Y hay un aviso "auto_pausa_errores" de severidad "critical"
 
-  @CA-4.2
+  @CA-4.2 @limites
   Escenario: Pocas fallas no pausan al agente
     Dado que el gateway reporta para el agente 6 llamadas recientes con 2 fallidas
     Cuando corre el monitor
     Entonces el agente queda "activo"
 
-  @CA-4.3
+  @CA-4.3 @limites
   Escenario: Al llegar al 80% del presupuesto hay un aviso, una sola vez
     Dado que el gateway reporta para el agente un gasto de 0.85 de 1.0
     Cuando corre el monitor
@@ -58,7 +58,7 @@ Característica: Kill switch y auto-pausa con aviso
     Entonces el agente queda "pausado"
     Y hay un aviso "auto_pausa_gasto" de severidad "critical"
 
-  @CA-4.3
+  @CA-4.3 @adivinanza_errores
   Escenario: El webhook rechaza avisos sin el token correcto
     Cuando alguien envía un aviso al webhook con un token inválido
     Entonces la respuesta tiene el código 401

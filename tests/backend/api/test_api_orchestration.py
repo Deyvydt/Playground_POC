@@ -1,3 +1,4 @@
+import pytest
 import json
 
 
@@ -23,11 +24,13 @@ def test_flujo_con_agente_inexistente_responde_404(client, as_role):
     assert r.status_code == 404
 
 
+@pytest.mark.limites
 def test_flujo_vacio_es_rechazado(client, as_role):
     r = client.post("/api/orchestration/run", json={"input_text": "x", "pipeline": []}, headers=as_role("viewer"))
     assert r.status_code == 422
 
 
+@pytest.mark.adivinanza_errores
 def test_flujo_en_vivo_emite_un_evento_de_error_y_se_detiene_si_falla_el_motor(client, as_role, fake_llm):
     fake_llm.failure = "El motor de modelos no está disponible"
     r = client.post("/api/orchestration/stream", json={"input_text": "x", "pipeline": [2, 3]}, headers=as_role("viewer"))

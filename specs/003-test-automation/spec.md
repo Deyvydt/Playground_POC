@@ -50,11 +50,16 @@ componentes con un solo script, para validar un cambio sin pasos manuales.
 Como líder técnico, quiero un reporte que diga claramente si las pruebas pasaron,
 para decidir si un cambio está listo.
 
-1. Se genera `reports/reporte.html` con el veredicto global, el detalle por
+1. Al terminar, la terminal muestra el reporte completo: veredicto, resultados por
+   componente, por tipo y nivel y por técnica de diseño, la matriz de trazabilidad y
+   cada falla con su motivo y la línea donde ocurrió (`--lista` muestra además cada
+   prueba). Usa colores si la terminal los admite (`NO_COLOR` los desactiva,
+   `FORCE_COLOR` los fuerza en CI).
+2. Se genera `reports/reporte.html` con el veredicto global, el detalle por
    componente y tipo, y el error de cada prueba fallida.
-2. Se genera `reports/reporte.md` (apto para el resumen de un job de GitHub Actions)
+3. Se genera `reports/reporte.md` (apto para el resumen de un job de GitHub Actions)
    y `reports/resumen.json` (para otras herramientas).
-3. Se conserva un JUnit XML por componente (`reports/junit-<componente>.xml`).
+4. Se conserva un JUnit XML por componente (`reports/junit-<componente>.xml`).
 
 ### US-3 — Escenarios funcionales trazables a las historias de usuario (P1)
 Como QA, quiero escribir los criterios de aceptación como escenarios Gherkin en
@@ -72,6 +77,9 @@ español, para que la especificación sea ejecutable.
 2. **API**: cada endpoint con sus códigos de éxito y error y los permisos por rol.
 3. **Contrato**: Schemathesis genera solicitudes a partir del OpenAPI de cada
    servicio y verifica que ninguna produzca un error 5xx.
+4. Los casos se diseñan con técnicas explícitas (partición de equivalencias,
+   valores límite, tabla de decisión, transición de estados, adivinanza de errores)
+   y cada prueba declara la suya (ver `plan.md`, sección 2b).
 
 ### US-5 — Diseño de pruebas asistido y repetible (P2)
 Como equipo que trabaja con SDD, quiero un agente y skills que generen historias,

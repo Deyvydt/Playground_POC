@@ -20,6 +20,8 @@ def kinds(db):
     return [n.kind for n in db.exec(select(Notification).where(Notification.kind != "registro")).all()]
 
 
+@pytest.mark.limites
+@pytest.mark.transicion_estados
 def test_gasto_al_100_por_ciento_pausa_al_agente(db, gateway, vigilado):
     gateway.set_spend(vigilado.key_hash, 1.0)
     asyncio.run(monitor.check_agent(db, vigilado))
@@ -28,6 +30,7 @@ def test_gasto_al_100_por_ciento_pausa_al_agente(db, gateway, vigilado):
     assert kinds(db) == ["auto_pausa_gasto"]
 
 
+@pytest.mark.limites
 def test_gasto_al_80_por_ciento_avisa_una_sola_vez(db, gateway, vigilado):
     gateway.set_spend(vigilado.key_hash, 0.8)
     asyncio.run(monitor.check_agent(db, vigilado))
@@ -36,12 +39,14 @@ def test_gasto_al_80_por_ciento_avisa_una_sola_vez(db, gateway, vigilado):
     assert kinds(db) == ["aviso_gasto"]
 
 
+@pytest.mark.particion
 def test_gasto_bajo_no_genera_avisos(db, gateway, vigilado):
     gateway.set_spend(vigilado.key_hash, 0.5)
     asyncio.run(monitor.check_agent(db, vigilado))
     assert kinds(db) == []
 
 
+@pytest.mark.limites
 @pytest.mark.parametrize("total, fallidas, pausado", [
     (6, 4, True),    # 67 % > 50 %
     (6, 3, False),   # 50 % no supera el umbral
@@ -61,6 +66,7 @@ def test_sin_gateway_el_monitor_no_falla_ni_pausa(db, gateway, vigilado):
     assert db.get(Agente, vigilado.id).status == "activo"
 
 
+@pytest.mark.transicion_estados
 def test_run_once_solo_revisa_agentes_activos(db, gateway, vigilado):
     asyncio.run(registry.pause(db, vigilado, "manual", "Ana"))
     gateway.set_spend(vigilado.key_hash, 5.0)

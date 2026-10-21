@@ -44,6 +44,13 @@ Generado a partir de `plan.md`.
   `str`). Mismo riesgo en `X-Service-Token` de governance y agent-lab, y en la firma
   del token de sesión del backend. Ahora se comparan bytes. Encontrado por Schemathesis.
 - [x] D004 El webhook de alertas daba 500 con un cuerpo que no es JSON (ahora 400).
+- [x] D005 `GET /gov/notifications?limit=-1` no validaba el mínimo: en Postgres un
+  LIMIT negativo da 500. Encontrado al diseñar valores límite (ahora 422).
+
+## Fase 7 — Técnicas de diseño y reporte en terminal
+- [x] T070 Técnicas de diseño como markers y en el reporte (`plan.md` sección 2b)
+- [x] T071 Pruebas de valores límite y particiones (`test_limites_*.py`)
+- [x] T072 Reporte completo en la terminal (veredicto, tablas, trazabilidad, fallas con motivo); `--lista` muestra cada prueba
 
 ## Hallazgos abiertos (decisión de producto)
 - [ ] H001 `GET /api/metrics/summary` y `/api/metrics/timeseries` solo exigen sesión,
@@ -53,5 +60,5 @@ Generado a partir de `plan.md`.
 
 ## Siguiente iteración (integración de sistemas)
 - [ ] T060 Pruebas E2E del frontend (Playwright) para Gobierno, Laboratorio y permisos visuales
-- [ ] T061 Pruebas de integración con LiteLLM + Postgres reales (docker compose) y Ollama
+- [ ] T061 Pruebas de integración con servicios reales: ver `specs/004-system-integration/`
 - [ ] T062 Workflow de GitHub Actions que ejecute `scripts/run-tests.py` y publique `reports/`

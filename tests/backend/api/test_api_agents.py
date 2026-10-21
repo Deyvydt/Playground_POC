@@ -17,6 +17,11 @@ def test_crear_agente_guarda_quien_lo_creo(client, as_role):
     assert r.json()["tools"] == ["calculadora"]
 
 
+@pytest.mark.particion
+@pytest.mark.limites
+@pytest.mark.particion
+@pytest.mark.regresion
+@pytest.mark.limites
 @pytest.mark.parametrize("cambio", [
     {"name": "A"},
     {"role_prompt": "x"},
@@ -27,6 +32,7 @@ def test_crear_agente_con_datos_invalidos_responde_422(client, as_role, cambio):
     assert client.post("/api/agents", json={**NUEVO, **cambio}, headers=as_role("developer")).status_code == 422
 
 
+@pytest.mark.transicion_estados
 def test_actualizar_agente_cambia_solo_lo_enviado(client, as_role):
     agent_id = client.post("/api/agents", json=NUEVO, headers=as_role("developer")).json()["id"]
     r = client.put(f"/api/agents/{agent_id}", json={"status": "inactive"}, headers=as_role("developer"))
@@ -35,6 +41,7 @@ def test_actualizar_agente_cambia_solo_lo_enviado(client, as_role):
     assert r.json()["updated_at"] is not None
 
 
+@pytest.mark.particion
 def test_estado_invalido_es_rechazado(client, as_role):
     assert client.put("/api/agents/1", json={"status": "borrado"}, headers=as_role("admin")).status_code == 422
 

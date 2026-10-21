@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, func, select, update
 from app.auth import Caller, get_caller
 from app.database import get_session
@@ -10,7 +10,8 @@ router = APIRouter(prefix="/gov/notifications", tags=["notifications"])
 @router.get("")
 def list_notifications(
     unread_only: bool = False,
-    limit: int = 50,
+    # ge=1: Postgres rechaza un LIMIT negativo (500); por arriba se recorta a 200.
+    limit: int = Query(50, ge=1),
     session: Session = Depends(get_session),
     _: Caller = Depends(get_caller),
 ):

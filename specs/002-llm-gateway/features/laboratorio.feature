@@ -4,16 +4,16 @@ Característica: Agentes de prueba LangGraph
   Como desarrollador quiero ejecutar los grafos de Talentia y AgentFactory
   para validar el gobierno sin depender de los sistemas reales.
 
-  @CA-6.1
-  Escenario: Un candidato con buen puntaje pasa a entrevista
-    Dado que el nodo "evaluador_ajuste" responderá "85"
+  @CA-6.1 @limites
+  Escenario: Un candidato con el puntaje mínimo (70) pasa a entrevista
+    Dado que el nodo "evaluador_ajuste" responderá "70"
     Cuando ejecuto el grafo "talentia" con un CV y una vacante
     Entonces el recorrido fue "analizador_cv, evaluador_ajuste, generador_entrevista"
-    Y el resultado incluye el puntaje 85
+    Y el resultado incluye el puntaje 70
 
-  @CA-6.1
-  Escenario: Un candidato con puntaje bajo recibe un mensaje de rechazo
-    Dado que el nodo "evaluador_ajuste" responderá "40"
+  @CA-6.1 @limites
+  Escenario: Un candidato justo debajo del mínimo (69) recibe un mensaje de rechazo
+    Dado que el nodo "evaluador_ajuste" responderá "69"
     Cuando ejecuto el grafo "talentia" con un CV y una vacante
     Entonces el recorrido fue "analizador_cv, evaluador_ajuste, redactor_comunicaciones"
 
@@ -29,7 +29,7 @@ Característica: Agentes de prueba LangGraph
     Entonces cada nodo usó una virtual key distinta
     Y cada llamada llevó el identificador de la ejecución como traza
 
-  @CA-6.4
+  @CA-6.4 @transicion_estados
   Escenario: Si un nodo está pausado el grafo se detiene con un mensaje claro
     Dado que el nodo "evaluador_ajuste" está pausado en el gateway
     Cuando ejecuto el grafo "talentia" con un CV y una vacante

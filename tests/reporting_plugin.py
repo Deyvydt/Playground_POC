@@ -20,6 +20,11 @@ except ImportError:  # pytest-bdd no instalado: solo pruebas técnicas
 
 LEVELS = {"unit": "unitaria", "api": "api", "contract": "contrato", "bdd": "aceptacion"}
 TRACE_TAG = re.compile(r"^(spec-\d+|US-\d+|CA-[\d.]+)$")
+# Técnicas de diseño de casos (markers de pytest o tags de los .feature). El contrato y los
+# escenarios BDD reciben la suya automáticamente.
+TECNICAS = {"particion", "limites", "tabla_decision", "transicion_estados", "propiedades",
+            "ejemplos", "adivinanza_errores", "regresion"}
+AUTO_TECNICA = {"contract": "propiedades", "bdd": "ejemplos"}
 
 
 def pytest_addoption(parser):
@@ -65,6 +70,9 @@ def pytest_collection_modifyitems(config, items):
         tipo = "funcional" if level == "bdd" else "tecnica"
         item.add_marker(getattr(pytest.mark, tipo))
         tags = sorted({m.name for m in item.iter_markers() if TRACE_TAG.match(m.name)})
+        tecnicas = {m.name for m in item.iter_markers() if m.name in TECNICAS}
+        if level in AUTO_TECNICA:
+            tecnicas.add(AUTO_TECNICA[level])
         scenario = _scenario(item)
         if scenario is not None:
             title = scenario.name
@@ -82,6 +90,7 @@ def pytest_collection_modifyitems(config, items):
             "caracteristica": feature,
             "feature_file": source,
             "tags": tags,
+            "tecnicas": sorted(tecnicas),
         }
 
 

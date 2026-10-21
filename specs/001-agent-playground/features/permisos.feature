@@ -3,7 +3,7 @@
 Característica: Controlar accesos por rol
   Como administrador quiero que cada rol solo pueda hacer lo que le corresponde.
 
-  @CA-6.1 @CA-6.2 @CA-6.3
+  @CA-6.1 @CA-6.2 @CA-6.3 @tabla_decision
   Esquema del escenario: Permisos por rol validados en el servidor
     Dado que inicié sesión como "<rol>"
     Cuando intento "<accion>"

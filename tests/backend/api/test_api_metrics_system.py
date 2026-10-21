@@ -20,6 +20,7 @@ def test_resumen_suma_solicitudes_tokens_errores_y_costos(client, as_role, fake_
     assert r["total_agents"] == 6 and r["active_agents"] == 5  # "Revisor de Contratos" se siembra inactivo
 
 
+@pytest.mark.limites
 def test_resumen_sin_actividad_no_divide_por_cero(client, as_role):
     r = client.get("/api/metrics/summary", headers=as_role("developer")).json()
     assert (r["total_requests"], r["avg_latency_ms"], r["error_rate"]) == (0, 0, 0)
@@ -36,6 +37,8 @@ def test_serie_temporal_tiene_un_punto_por_dia_y_filtra_por_agente(client, as_ro
     assert solo_agente[-1]["requests"] == 1
 
 
+@pytest.mark.limites
+@pytest.mark.particion
 @pytest.mark.parametrize("query", ["days=0", "days=366", "days=abc"])
 def test_periodos_fuera_de_rango_responden_422(client, as_role, query):
     assert client.get(f"/api/metrics/summary?{query}", headers=as_role("developer")).status_code == 422

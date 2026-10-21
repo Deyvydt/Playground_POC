@@ -32,6 +32,27 @@ Fuera de alcance de esta iteración: frontend (E2E) y gateway LiteLLM real (ver
 (`gateway_config.py`) tiene pruebas unitarias en la suite de governance, que es
 la dueña de la integración con LiteLLM.
 
+## 2b. Técnicas de diseño de casos
+
+Cada prueba declara con qué técnica se diseñó (marker de pytest o tag del
+`.feature`); el reporte las cuenta en "Por técnica de diseño".
+
+| Técnica | Qué es | Dónde se aplica (ejemplos) | Marker |
+|---|---|---|---|
+| Partición de equivalencias | Dividir las entradas en clases que el sistema trata igual y probar un representante de cada una (válidas e inválidas). | Formatos de documento (txt/md válidos; csv/docx/sin extensión inválidos), roles, estado del agente, sistema → área, errores del gateway por código. | `particion` |
+| Valores límite | Probar justo en los bordes de cada rango: mínimo − 1, mínimo, máximo, máximo + 1. Ahí se concentran los errores "por uno". | Temperatura 0–1, días 1–365, actividad 1–50, nombres 2–80, contraseña ≥ 6, tamaño de archivo, puntaje 69/70, gasto 0.79/0.80/0.99/1.00, errores 50 %/60 % y mínimo de 5 llamadas, rondas de corrección, vigencia del token. | `limites` |
+| Tabla de decisión | Combinar condiciones (rol × acción, credenciales presentes) y fijar el resultado de cada combinación. | Permisos por rol (`permisos.feature`), `require_admin`, credenciales de Langfuse, rutas de los grafos. | `tabla_decision` |
+| Transición de estados | Probar los cambios de estado válidos y lo que se permite en cada estado. | Agente activo ↔ pausado (manual y automático), usuario activo → desactivado, agente inactivo no conversa, key regenerada en un agente pausado. | `transicion_estados` |
+| Basada en propiedades (fuzzing) | Generar cientos de entradas a partir del esquema y verificar una propiedad general ("nunca un 5xx"). | Contrato con Schemathesis de los tres OpenAPI (automática en `contract/`). | `propiedades` |
+| Especificación por ejemplos (BDD) | Criterios de aceptación escritos como ejemplos concretos y ejecutables. | Todos los `.feature` (automática en `bdd/`). | `ejemplos` |
+| Adivinanza de errores | Entradas que la experiencia dice que rompen sistemas: vacíos, caracteres raros, servicios caídos, datos malformados. | Tokens alterados o no ASCII, código en la calculadora, gateway/identidad caídos, JSON inválido en el webhook. | `adivinanza_errores` |
+| Regresión | Una prueba por cada defecto corregido, para que no vuelva. | D001–D005 de `tasks.md`. | `regresion` |
+
+Además se usó **prueba de mutación manual** para validar la suite: se introdujo un
+error a propósito (dar un permiso de más, quitar el bloqueo de la key al pausar,
+cambiar `>=` por `>` en el umbral de presupuesto) y se confirmó que las pruebas
+fallan en el punto exacto.
+
 ## 3. Dobles de prueba (sin servicios externos)
 
 | Dependencia real | Doble | Dónde |

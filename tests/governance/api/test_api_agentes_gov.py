@@ -13,6 +13,9 @@ def test_registrar_devuelve_la_key_y_la_guia_una_sola_vez(client, headers):
     assert "key_hash" not in detalle and body["connection"]["api_key"] not in str(detalle)
 
 
+@pytest.mark.particion
+@pytest.mark.limites
+@pytest.mark.tabla_decision
 @pytest.mark.parametrize("payload, status", [
     ({"name": "X", "sistema_id": 1}, 422),
     ({"name": "Valido", "sistema_id": 999}, 404),
@@ -62,6 +65,7 @@ def test_listado_filtra_por_area_y_sistema_e_incluye_el_uso(client, headers, gat
     assert [a["name"] for a in por_sistema] == ["En Desarrollo"]
 
 
+@pytest.mark.transicion_estados
 def test_pausar_y_reactivar(client, headers, gateway):
     admin = headers("admin")
     agent_id = registrar(client, admin).json()["agent"]["id"]
@@ -71,6 +75,7 @@ def test_pausar_y_reactivar(client, headers, gateway):
     assert r.json()["status"] == "activo" and "warning" not in r.json()
 
 
+@pytest.mark.transicion_estados
 def test_reactivar_sin_presupuesto_avisa_que_seguira_bloqueado_por_el_gateway(client, headers, gateway):
     admin = headers("admin")
     agent_id = registrar(client, admin).json()["agent"]["id"]

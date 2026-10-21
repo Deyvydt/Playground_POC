@@ -45,6 +45,9 @@ def test_la_sesion_de_tokenio_se_valida_contra_el_servicio_de_identidad_y_se_cac
     assert identidad["calls"] == 1
 
 
+@pytest.mark.particion
+@pytest.mark.regresion
+@pytest.mark.tabla_decision
 @pytest.mark.parametrize("headers", [{}, {"X-Service-Token": "incorrecto"}, {"X-Service-Token": "tókenñ"}])
 def test_sin_credenciales_validas_responde_401(identidad, headers):
     with pytest.raises(HTTPException) as exc:
@@ -59,6 +62,7 @@ def test_sesion_rechazada_por_identidad_responde_401(identidad):
     assert exc.value.status_code == 401
 
 
+@pytest.mark.adivinanza_errores
 def test_identidad_caida_responde_503(identidad):
     def caido(req):
         raise httpx.ConnectError("sin conexión")

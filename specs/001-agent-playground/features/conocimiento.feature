@@ -23,7 +23,7 @@ Característica: Responder con conocimiento interno
     Entonces la traza incluye un paso de recuperación cuyo primer fragmento menciona "vacaciones"
     Y el modelo recibió el contexto recuperado en sus instrucciones
 
-  @CA-3.4
+  @CA-3.4 @particion
   Esquema del escenario: Solo se aceptan formatos de texto soportados
     Cuando subo el documento "<archivo>" al agente "Asistente de RR.HH." con el texto:
       """

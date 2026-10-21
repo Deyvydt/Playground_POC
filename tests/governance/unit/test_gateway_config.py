@@ -23,6 +23,7 @@ def test_sin_credenciales_se_usa_config_yaml_sin_cambios(tmp_path):
     assert not (tmp_path / "x.yaml").exists()
 
 
+@pytest.mark.tabla_decision
 def test_con_una_sola_credencial_no_se_activa(monkeypatch, tmp_path):
     monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "pk")
     assert gateway_config.langfuse_enabled() is False

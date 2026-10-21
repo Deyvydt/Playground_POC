@@ -1,3 +1,6 @@
+import pytest
+
+
 def test_health_informa_el_estado_del_gateway(client, gateway):
     assert client.get("/gov/health").json() == {"status": "ok", "gateway_available": True}
     gateway.down = True
@@ -22,6 +25,7 @@ def test_areas_sin_gateway_siguen_respondiendo(client, headers, gateway):
     assert len(areas) == 3 and all(a["usage"] == {"available": False} for a in areas)
 
 
+@pytest.mark.particion
 def test_crear_sistema(client, headers):
     r = client.post("/gov/sistemas", json={"name": "Cobranzas IA", "area_id": "plataforma"}, headers=headers("admin"))
     assert r.status_code == 201 and r.json()["slug"] == "cobranzas-ia"
@@ -61,6 +65,8 @@ def test_webhook_de_alertas(client, headers, gateway):
     assert agente(agent_id).status == "pausado"
 
 
+@pytest.mark.regresion
+@pytest.mark.adivinanza_errores
 def test_webhook_rechaza_tokens_no_ascii_y_cuerpos_invalidos_sin_error_del_servidor(client):
     """Regresión: Schemathesis encontró un 500 con un token no ASCII."""
     assert client.post("/gov/alerts/gateway?token=tókenñ", json={}).status_code == 401

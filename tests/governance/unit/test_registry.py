@@ -15,6 +15,8 @@ def nuevo(db, nombre="Agente Unitario", sistema="talentia", **campos):
     return a, key
 
 
+@pytest.mark.particion
+@pytest.mark.adivinanza_errores
 @pytest.mark.parametrize("texto, slug", [
     ("Asistente de RR.HH.", "asistente-de-rr-hh"),
     ("  Análisis   Ñandú ", "analisis-nandu"),
@@ -32,12 +34,14 @@ def test_registrar_hereda_el_area_del_sistema_y_guarda_solo_el_hash(db, gateway)
     assert enviado["team_id"] == "rrhh" and enviado["metadata"]["sistema"] == "talentia"
 
 
+@pytest.mark.particion
 def test_registrar_un_nombre_repetido_en_el_mismo_sistema_falla(db):
     nuevo(db)
     with pytest.raises(ValueError, match="Ya existe"):
         nuevo(db)
 
 
+@pytest.mark.adivinanza_errores
 def test_si_el_gateway_falla_el_agente_no_queda_registrado(db, gateway):
     gateway.down = True
     with pytest.raises(litellm_admin.GatewayError):
@@ -45,6 +49,7 @@ def test_si_el_gateway_falla_el_agente_no_queda_registrado(db, gateway):
     assert db.exec(select(Agente)).all() == []
 
 
+@pytest.mark.transicion_estados
 def test_regenerar_la_key_de_un_agente_pausado_la_deja_bloqueada(db, gateway):
     a, key = nuevo(db)
     asyncio.run(registry.pause(db, a, "motivo", "Ana"))
@@ -53,6 +58,7 @@ def test_regenerar_la_key_de_un_agente_pausado_la_deja_bloqueada(db, gateway):
     assert gateway.keys[a.key_hash]["blocked"] is True
 
 
+@pytest.mark.transicion_estados
 def test_pausar_dos_veces_no_duplica_el_aviso(db):
     a, _ = nuevo(db)
     asyncio.run(registry.pause(db, a, "uno", "Ana"))

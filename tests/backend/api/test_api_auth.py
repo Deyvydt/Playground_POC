@@ -10,11 +10,15 @@ def test_login_correcto_devuelve_token_y_perfil_sin_contrasena(client, demo_pass
     assert "govern" in body["user"]["permissions"]
 
 
+@pytest.mark.particion
 def test_login_ignora_mayusculas_y_espacios_del_correo(client, demo_password):
     r = client.post("/api/auth/login", json={"email": "  Ana.Rios@TCS.com ", "password": demo_password})
     assert r.status_code == 200
 
 
+@pytest.mark.particion
+@pytest.mark.particion
+@pytest.mark.adivinanza_errores
 @pytest.mark.parametrize("email, password", [
     ("ana.rios@tcs.com", "incorrecta"),
     ("nadie@tcs.com", "Tcs2026!"),
@@ -35,6 +39,7 @@ def test_rutas_protegidas_sin_sesion_valida_responden_401(client, headers):
     assert client.get("/api/agents", headers=headers).status_code == 401
 
 
+@pytest.mark.transicion_estados
 def test_sesion_de_un_usuario_desactivado_deja_de_valer(client, as_role):
     headers = as_role("developer")
     admin = as_role("admin")

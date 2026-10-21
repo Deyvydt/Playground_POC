@@ -47,6 +47,7 @@ def test_chat_por_gateway_sin_metadata_no_envia_el_campo(gateway):
     assert "metadata" not in json.loads(gateway["requests"][0].content)
 
 
+@pytest.mark.particion
 @pytest.mark.parametrize("status, mensaje", [
     (401, "El agente está pausado por un administrador."),
     (400, "El agente agotó su presupuesto o límite de uso."),
@@ -60,6 +61,7 @@ def test_errores_del_gateway_se_traducen_a_mensajes_claros(gateway, status, mens
         asyncio.run(ORIGINALS["chat"]("llama-local", [{"role": "user", "content": "Hola"}], api_key="sk"))
 
 
+@pytest.mark.adivinanza_errores
 def test_gateway_caido_se_informa_como_no_disponible(gateway):
     def caido(req):
         raise httpx.ConnectError("sin conexión")

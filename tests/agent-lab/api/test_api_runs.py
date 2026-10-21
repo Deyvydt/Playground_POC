@@ -12,6 +12,7 @@ def test_ejecutar_talentia_devuelve_traza_y_resultado(client, user, model):
     assert "trace" not in body["resultado"] and "run_id" not in body["resultado"]
 
 
+@pytest.mark.particion
 @pytest.mark.parametrize("sistema, payload", [
     ("talentia", {"cv": "", "vacante": "x"}),
     ("talentia", {"cv": "x", "vacante": "   "}),
@@ -21,6 +22,7 @@ def test_entradas_incompletas_responden_422(client, user, sistema, payload):
     assert client.post(f"/lab/runs/{sistema}", json=payload, headers=user).status_code == 422
 
 
+@pytest.mark.particion
 def test_sistema_desconocido_responde_404(client, user):
     assert client.post("/lab/runs/cobranzas", json={}, headers=user).status_code == 404
 

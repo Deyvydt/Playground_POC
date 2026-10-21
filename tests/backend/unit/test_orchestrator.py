@@ -43,6 +43,7 @@ def test_tool_call_acepta_argumentos_como_texto_json(db, fake_llm):
     assert any(s["type"] == "tool_call" and s["detail"]["resultado"]["resultado"] == 2 for s in result["trace"])
 
 
+@pytest.mark.limites
 def test_el_bucle_de_herramientas_se_corta_en_el_maximo_de_rondas(db, fake_llm):
     for _ in range(orchestrator.MAX_TOOL_ROUNDS + 2):
         fake_llm.tool_call("fecha_actual", {})
@@ -52,6 +53,7 @@ def test_el_bucle_de_herramientas_se_corta_en_el_maximo_de_rondas(db, fake_llm):
     assert result["trace"][-1]["type"] == "final_answer"
 
 
+@pytest.mark.adivinanza_errores
 def test_falla_del_motor_registra_metrica_fallida_y_propaga_el_error(db, fake_llm):
     fake_llm.failure = "El motor de modelos no está disponible"
     with pytest.raises(ModelUnavailableError):

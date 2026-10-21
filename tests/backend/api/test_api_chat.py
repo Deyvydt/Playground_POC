@@ -1,3 +1,6 @@
+import pytest
+
+
 def chat(client, headers, agent_id, message, conversation_id=None):
     payload = {"message": message, **({"conversation_id": conversation_id} if conversation_id else {})}
     return client.post(f"/api/agents/{agent_id}/chat", json=payload, headers=headers)
@@ -31,6 +34,7 @@ def test_los_mensajes_guardan_la_traza_y_los_tokens(client, as_role):
     assert (respuesta["prompt_tokens"], respuesta["completion_tokens"]) == (10, 5)
 
 
+@pytest.mark.tabla_decision
 def test_un_usuario_no_ve_las_conversaciones_de_otro_pero_el_admin_si(client, as_role):
     conv = chat(client, as_role("viewer"), 1, "Privado").json()["conversation_id"]
     assert client.get(f"/api/conversations/{conv}/messages", headers=as_role("developer")).status_code == 404
@@ -46,6 +50,7 @@ def test_eliminar_una_conversacion_borra_sus_mensajes(client, as_role):
     assert client.get(f"/api/conversations/{conv}/messages", headers=viewer).status_code == 404
 
 
+@pytest.mark.transicion_estados
 def test_un_agente_inactivo_no_conversa(client, as_role):
     client.put("/api/agents/1", json={"status": "inactive"}, headers=as_role("admin"))
     r = chat(client, as_role("viewer"), 1, "Hola")
@@ -56,6 +61,7 @@ def test_chat_con_agente_inexistente_responde_404(client, as_role):
     assert chat(client, as_role("viewer"), 999, "Hola").status_code == 404
 
 
+@pytest.mark.limites
 def test_mensaje_vacio_es_rechazado(client, as_role):
     assert chat(client, as_role("viewer"), 1, "").status_code == 422
 

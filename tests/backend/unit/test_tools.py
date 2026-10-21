@@ -3,6 +3,10 @@ import pytest
 from app import tools
 
 
+@pytest.mark.particion
+@pytest.mark.particion
+@pytest.mark.adivinanza_errores
+@pytest.mark.particion
 @pytest.mark.parametrize("expresion, esperado", [
     ("2+3", 5),
     ("(120*3)/4", 90),
@@ -28,6 +32,7 @@ def test_calculadora_rechaza_codigo_que_no_es_aritmetica(expresion):
     assert "resultado" not in resultado
 
 
+@pytest.mark.adivinanza_errores
 def test_calculadora_informa_division_por_cero():
     assert "error" in tools.calculadora("1/0")
 
@@ -46,14 +51,17 @@ def test_consultar_ticket_encuentra_tickets_sin_importar_mayusculas(ticket):
     assert resultado["estado"] == "En progreso"
 
 
+@pytest.mark.particion
 def test_consultar_ticket_inexistente_no_inventa_datos():
     assert tools.consultar_ticket_interno("TCS-0000") == {"ticket_id": "TCS-0000", "encontrado": False}
 
 
+@pytest.mark.particion
 def test_execute_tool_con_herramienta_desconocida_devuelve_error():
     assert "no reconocida" in tools.execute_tool("borrar_todo", {})["error"]
 
 
+@pytest.mark.adivinanza_errores
 def test_execute_tool_con_argumentos_invalidos_devuelve_error_sin_excepcion():
     assert "error" in tools.execute_tool("calculadora", {"otro": "1+1"})
 

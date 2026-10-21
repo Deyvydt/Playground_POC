@@ -9,6 +9,7 @@ from app.models import AgentCredential
 from fakes import gateway_error
 
 
+@pytest.mark.particion
 @pytest.mark.parametrize("status, mensaje", [
     (401, "El agente está pausado por un administrador."),
     (400, "El agente agotó su presupuesto o límite de uso."),
@@ -35,6 +36,7 @@ def test_call_node_usa_la_key_del_nodo_y_envia_la_traza(model):
                     "tokens_entrada": 11, "tokens_salida": 7}
 
 
+@pytest.mark.limites
 def test_call_node_recorta_entrada_y_salida_en_la_traza(model):
     model.respond("analizador_cv", "x" * 900)
     _, paso = asyncio.run(llm.call_node("talentia", "analizador_cv", "s", "e" * 900, "r"))

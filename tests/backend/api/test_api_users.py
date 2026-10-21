@@ -10,16 +10,20 @@ def test_admin_crea_usuario_con_correo_normalizado(client, as_role):
     assert "password_hash" not in r.json()
 
 
+@pytest.mark.particion
 def test_correo_duplicado_responde_409(client, as_role):
     r = client.post("/api/users", json={**NUEVO, "email": "ana.rios@tcs.com"}, headers=as_role("admin"))
     assert r.status_code == 409
 
 
+@pytest.mark.particion
+@pytest.mark.limites
 @pytest.mark.parametrize("cambio", [{"password": "123"}, {"role": "superadmin"}, {"name": "P"}])
 def test_datos_de_usuario_invalidos_responden_422(client, as_role, cambio):
     assert client.post("/api/users", json={**NUEVO, **cambio}, headers=as_role("admin")).status_code == 422
 
 
+@pytest.mark.tabla_decision
 def test_el_admin_no_puede_quitarse_su_rol_ni_desactivarse_ni_eliminarse(client, as_role):
     admin = as_role("admin")
     me = client.get("/api/auth/me", headers=admin).json()["id"]
