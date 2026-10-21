@@ -69,12 +69,17 @@ def _cosine(a: list[float], b: list[float]) -> float:
 
 
 async def retrieve(
-    session: Session, agent_id: int, query: str, k: int = TOP_K_CHUNKS, api_key: str | None = None
+    session: Session,
+    agent_id: int,
+    query: str,
+    k: int = TOP_K_CHUNKS,
+    api_key: str | None = None,
+    metadata: dict | None = None,
 ) -> list[dict]:
     chunks = session.exec(select(KnowledgeChunk).where(KnowledgeChunk.agent_id == agent_id)).all()
     if not chunks:
         return []
-    query_vec = await ollama_client.embed(query, api_key=api_key)
+    query_vec = await ollama_client.embed(query, api_key=api_key, metadata=metadata)
     scored = [
         {"content": c.content, "score": _cosine(query_vec, c.embedding), "chunk_index": c.chunk_index}
         for c in chunks

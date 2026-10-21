@@ -1,15 +1,42 @@
 import json
 import time
+import uuid
 from sqlmodel import Session
 from app.models import Agent, MetricLog
 from app import gateway_keys, ollama_client, rag, tools
 from app.ollama_client import ModelUnavailableError
 
 MAX_TOOL_ROUNDS = 3
+GATEWAY_SISTEMA = "tokenio"
+GATEWAY_AREA = "plataforma"
+
+
+def trace_metadata(agent: Agent, trace_id: str, trace_name: str, generation_name: str, session_id: str | None) -> dict:
+    """Metadatos que el gateway reenvía a Langfuse: agrupan las llamadas de un turno o flujo en una traza."""
+    metadata = {
+        "trace_id": trace_id,
+        "trace_name": trace_name,
+        "generation_name": generation_name,
+        "tags": [f"agent:{agent.name}", f"area:{GATEWAY_AREA}", f"sistema:{GATEWAY_SISTEMA}"],
+    }
+    if session_id:
+        metadata["session_id"] = session_id
+    return metadata
+
+
+def new_trace_id(prefix: str) -> str:
+    return f"{prefix}-{uuid.uuid4()}"
 
 
 async def run_agent_turn(
-    session: Session, agent: Agent, history: list[dict], user_message: str, user_id: int | None = None
+    session: Session,
+    agent: Agent,
+    history: list[dict],
+    user_message: str,
+    user_id: int | None = None,
+    trace_id: str | None = None,
+    trace_name: str = "chat",
+    session_id: str | None = None,
 ) -> dict:
     """Ejecuta un turno completo del agente: RAG -> LLM -> (tool-calls) -> respuesta final.
 
@@ -41,10 +68,14 @@ async def run_agent_turn(
         return latency
 
     api_key = gateway_keys.api_key_for(agent)
+    trace_id = trace_id or new_trace_id("chat")
+
+    def metadata_for(step: str) -> dict:
+        return trace_metadata(agent, trace_id, trace_name, f"{agent.name} · {step}", session_id)
 
     system_prompt = agent.role_prompt
     try:
-        retrieved = await rag.retrieve(session, agent.id, user_message, api_key=api_key)
+        retrieved = await rag.retrieve(session, agent.id, user_message, api_key=api_key, metadata=metadata_for("recuperación"))
     except ModelUnavailableError as exc:
         # Sin embeddings el agente aun puede responder; se deja constancia en la traza.
         retrieved = []
@@ -70,7 +101,10 @@ async def run_agent_turn(
     for round_idx in range(MAX_TOOL_ROUNDS):
         call_t0 = time.perf_counter()
         try:
-            result = await ollama_client.chat(agent.model, messages, agent.temperature, tool_defs, api_key=api_key)
+            result = await ollama_client.chat(
+                agent.model, messages, agent.temperature, tool_defs,
+                api_key=api_key, metadata=metadata_for(f"ronda {round_idx + 1}"),
+            )
         except ModelUnavailableError as exc:
             log_metric(False, str(exc))
             raise

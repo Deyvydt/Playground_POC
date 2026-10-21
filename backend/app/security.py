@@ -13,7 +13,7 @@ from app.models import User
 _PBKDF2_ROUNDS = 240_000
 
 PERMISSIONS = {
-    "admin": {"chat", "create", "edit", "delete", "knowledge", "metrics", "manage_users"},
+    "admin": {"chat", "create", "edit", "delete", "knowledge", "metrics", "manage_users", "govern"},
     "developer": {"chat", "create", "edit", "knowledge", "metrics"},
     "viewer": {"chat"},
 }

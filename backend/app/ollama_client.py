@@ -55,9 +55,10 @@ async def chat(
     temperature: float = 0.4,
     tools: list[dict] | None = None,
     api_key: str | None = None,
+    metadata: dict | None = None,
 ) -> dict:
     if LLM_GATEWAY_URL:
-        return await _chat_gateway(model, messages, temperature, tools, api_key)
+        return await _chat_gateway(model, messages, temperature, tools, api_key, metadata)
 
     payload = {
         "model": model,
@@ -80,11 +81,18 @@ async def chat(
 
 
 async def _chat_gateway(
-    model: str, messages: list[dict], temperature: float, tools: list[dict] | None, api_key: str | None
+    model: str,
+    messages: list[dict],
+    temperature: float,
+    tools: list[dict] | None,
+    api_key: str | None,
+    metadata: dict | None,
 ) -> dict:
     payload = {"model": model, "messages": messages, "temperature": temperature}
     if tools:
         payload["tools"] = tools
+    if metadata:
+        payload["metadata"] = metadata
     try:
         async with httpx.AsyncClient(timeout=TIMEOUT) as client:
             r = await client.post(
@@ -108,9 +116,9 @@ async def _chat_gateway(
     }
 
 
-async def embed(text: str, api_key: str | None = None) -> list[float]:
+async def embed(text: str, api_key: str | None = None, metadata: dict | None = None) -> list[float]:
     if LLM_GATEWAY_URL:
-        return await _embed_gateway(text, api_key)
+        return await _embed_gateway(text, api_key, metadata)
     try:
         async with httpx.AsyncClient(timeout=TIMEOUT) as client:
             r = await client.post(
@@ -123,12 +131,15 @@ async def embed(text: str, api_key: str | None = None) -> list[float]:
         raise ModelUnavailableError(f"El modelo de embeddings '{EMBED_MODEL}' no está disponible") from exc
 
 
-async def _embed_gateway(text: str, api_key: str | None) -> list[float]:
+async def _embed_gateway(text: str, api_key: str | None, metadata: dict | None) -> list[float]:
+    payload = {"model": GATEWAY_EMBED_ALIAS, "input": text}
+    if metadata:
+        payload["metadata"] = metadata
     try:
         async with httpx.AsyncClient(timeout=TIMEOUT) as client:
             r = await client.post(
                 f"{LLM_GATEWAY_URL}/v1/embeddings",
-                json={"model": GATEWAY_EMBED_ALIAS, "input": text},
+                json=payload,
                 headers={"Authorization": f"Bearer {api_key}"},
             )
             r.raise_for_status()

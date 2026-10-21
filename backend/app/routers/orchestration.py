@@ -6,7 +6,7 @@ from app.database import engine, get_session
 from app.models import Agent, User
 from app.ollama_client import ModelUnavailableError
 from app.schemas import OrchestrationRequest
-from app.orchestrator import run_agent_turn
+from app.orchestrator import new_trace_id, run_agent_turn
 from app.security import get_current_user
 
 router = APIRouter(prefix="/api/orchestration", tags=["orchestration"])
@@ -48,9 +48,12 @@ async def run_pipeline(
 ):
     steps = []
     running_input = payload.input_text
+    trace_id = new_trace_id("flujo")
     for agent in _load_pipeline(session, payload.pipeline):
         try:
-            result = await run_agent_turn(session, agent, [], running_input, user_id=user.id)
+            result = await run_agent_turn(
+                session, agent, [], running_input, user_id=user.id, trace_id=trace_id, trace_name="flujo"
+            )
         except ModelUnavailableError as exc:
             raise HTTPException(503, str(exc)) from exc
         steps.append(_step(agent, result))
@@ -69,11 +72,14 @@ async def stream_pipeline(payload: OrchestrationRequest, user: User = Depends(ge
         # La sesion de Depends se cierra antes de que empiece el streaming: se abre una propia.
         with Session(engine) as session:
             running_input = payload.input_text
+            trace_id = new_trace_id("flujo")
             for index, agent_id in enumerate(payload.pipeline):
                 agent = session.get(Agent, agent_id)
                 yield json.dumps({"event": "start", "index": index, "agent_id": agent.id}) + "\n"
                 try:
-                    result = await run_agent_turn(session, agent, [], running_input, user_id=user_id)
+                    result = await run_agent_turn(
+                        session, agent, [], running_input, user_id=user_id, trace_id=trace_id, trace_name="flujo"
+                    )
                 except ModelUnavailableError as exc:
                     yield json.dumps({"event": "error", "index": index, "message": str(exc)}) + "\n"
                     return

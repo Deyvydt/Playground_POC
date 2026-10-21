@@ -25,12 +25,17 @@ async def call_node(sistema: str, nodo: str, system_prompt: str, human_content: 
     """Invoca el LLM del nodo. Devuelve (texto_respuesta, paso_de_traza)."""
     agente_id, key = secrets.get_credential(sistema, nodo)
     llm = ChatOpenAI(base_url=f"{GATEWAY_URL}/v1", api_key=key, model=MODEL_ALIAS, temperature=0.2)
+    area = SISTEMA_AREA[sistema]
+    # trace_id = run_id: en Langfuse cada ejecución del grafo es una traza y cada nodo una generación.
     metadata = {
         "agent_id": agente_id,
         "sistema": sistema,
-        "area": SISTEMA_AREA[sistema],
+        "area": area,
         "run_id": run_id,
+        "trace_id": run_id,
+        "trace_name": f"{sistema} · grafo",
         "generation_name": nodo,
+        "tags": [f"agent:{agente_id}", f"area:{area}", f"sistema:{sistema}"],
     }
     try:
         respuesta = await llm.ainvoke(

@@ -71,7 +71,10 @@ async def chat_with_agent(
     session.commit()
 
     try:
-        result = await run_agent_turn(session, agent, history, payload.message, user_id=user.id)
+        result = await run_agent_turn(
+            session, agent, history, payload.message, user_id=user.id,
+            trace_name=f"chat · {agent.name}", session_id=f"conversacion-{conversation.id}",
+        )
     except ModelUnavailableError as exc:
         raise HTTPException(503, str(exc)) from exc
 
