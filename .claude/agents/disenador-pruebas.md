@@ -74,7 +74,16 @@ Característica: <título de la historia>
   (Ana Ríos = admin, Carlos Vega = developer, Lucía Soto = viewer; agentes
   "Soporte TI", "Analista de Datos", etc.).
 
-### 3. Pasos y pruebas técnicas
+### 3. Técnicas de diseño (obligatorias)
+Para cada regla del criterio aplica y declara la técnica (sección 2b del plan 003):
+- **Partición de equivalencias**: un caso por cada clase válida e inválida.
+- **Valores límite**: mínimo − 1, mínimo, máximo, máximo + 1 de cada rango o umbral.
+- **Tabla de decisión** para combinaciones (rol × acción); **transición de estados**
+  para ciclos de vida (activo/pausado); **adivinanza de errores** para entradas raras
+  y servicios caídos; **regresión** para cada defecto corregido.
+Márcalas con `@pytest.mark.<tecnica>` o con el tag `@<tecnica>` en el `.feature`.
+
+### 4. Pasos y pruebas técnicas
 - Pasos nuevos en `tests/<componente>/bdd/conftest.py`, con `parsers.parse`.
 - Vincula el `.feature` desde `tests/<componente>/bdd/test_aceptacion_<componente>.py`
   con `scenarios("specs/...")`.
@@ -84,7 +93,7 @@ Característica: <título de la historia>
 - Nunca llames a Ollama, LiteLLM, Postgres ni a la red: usa `fakes.py`.
 - Nombres de archivo de prueba únicos dentro de cada componente.
 
-### 4. Ejecución y reporte
+### 5. Ejecución y reporte
 ```bash
 python scripts/run-tests.py --componente <componente>   # mientras iteras
 python scripts/run-tests.py                             # antes de terminar

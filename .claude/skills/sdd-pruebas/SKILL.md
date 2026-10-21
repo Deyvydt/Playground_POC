@@ -24,6 +24,7 @@ Opciones (se pasan a `scripts/run-tests.py`):
 | `--componente backend` | Repetible: `backend`, `governance`, `agent-lab` |
 | `--rapido` | Sin contrato (Schemathesis); útil mientras iteras |
 | `--salida carpeta` | Otra carpeta de reportes (por defecto `reports/`) |
+| `--lista` | Muestra en la terminal cada prueba con su resultado |
 
 Si ya existe `.venv-tests/`, también sirve
 `.venv-tests/bin/python scripts/run-tests.py ...`. Para depurar una sola prueba:
@@ -33,6 +34,9 @@ deben correr en procesos separados.
 
 ## 2. Leer el resultado
 
+- **La terminal** muestra el reporte completo al terminar: veredicto, tablas por
+  componente, tipo/nivel y técnica de diseño, trazabilidad y cada falla con su motivo
+  (líneas `E`) y la línea del archivo. Es lo primero que se mira.
 - Código de salida: `0` pasó · `1` hubo fallas · `2` una suite no pudo ejecutarse
   (ver `reports/log-<componente>.txt`).
 - `reports/reporte.html`: veredicto, por componente, por tipo y nivel, matriz de
@@ -60,7 +64,12 @@ Si lo haces directamente:
 5. **Dobles**: `tests/backend/fakes.py` (`FakeLLM`), `tests/governance/fakes.py`
    (`FakeGateway`), `tests/agent-lab/fakes.py` (`FakeChatModel`). Si necesitas un
    comportamiento nuevo del servicio externo, amplía el doble; nunca llames al real.
-6. Ejecuta `--componente <x> --rapido` mientras iteras y la suite completa al final.
+6. **Técnica de diseño**: marca cada prueba con la que usaste
+   (`@pytest.mark.limites`, `particion`, `tabla_decision`, `transicion_estados`,
+   `adivinanza_errores`, `regresion`; en Gherkin, el tag `@limites`, etc.). Para cada
+   rango prueba mínimo − 1, mínimo, máximo y máximo + 1; para cada entrada, un
+   representante de cada clase válida e inválida. Ver `plan.md` sección 2b.
+7. Ejecuta `--componente <x> --rapido` mientras iteras y la suite completa al final.
 
 | Dónde vive | Qué |
 |---|---|

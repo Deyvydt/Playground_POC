@@ -24,7 +24,8 @@ sin su spec actualizado no está terminado.
 | `AGENTS.md` | Guía para agentes de IA | Cambia la arquitectura, una convención o cómo se prueba. |
 
 Specs actuales: `001-agent-playground` (plataforma), `002-llm-gateway` (gobierno
-de LLMs), `003-test-automation` (pruebas).
+de LLMs), `003-test-automation` (pruebas automatizadas), `004-system-integration`
+(plan de pruebas de integración con servicios reales y otros sistemas).
 
 ## 2. Procedimiento
 

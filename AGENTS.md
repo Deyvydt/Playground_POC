@@ -105,8 +105,9 @@ Suite automatizada, sin Ollama ni servicios levantados:
 ./scripts/run-tests.sh --rapido   # sin pruebas de contrato
 ```
 
-Reporte en `reports/reporte.html` (más `.md`, `.json` y JUnit). Código de salida
-0 = todo pasó.
+El reporte se imprime completo en la terminal (veredicto, tablas, trazabilidad y
+fallas con su motivo) y también queda en `reports/reporte.html` (más `.md`, `.json`
+y JUnit). Código de salida 0 = todo pasó.
 
 - **Funcionales**: escenarios Gherkin en español en `specs/<feature>/features/*.feature`,
   con tags `@spec-NNN @US-N @CA-N.M`; los pasos viven en `tests/<componente>/bdd/conftest.py`.
@@ -119,3 +120,6 @@ Un cambio está terminado cuando: (1) el spec refleja el comportamiento (skill
 `sdd-specs`), (2) cada criterio nuevo tiene escenario o prueba (skill `sdd-pruebas`
 o agente `disenador-pruebas`), (3) `run-tests` pasa. Si el cambio toca la
 interfaz, valida además el flujo a mano según `quickstart.md`.
+
+Pruebas con servicios reales (Ollama, LiteLLM, proveedores y sistemas de otros
+equipos en la red local): plan en `specs/004-system-integration/`.

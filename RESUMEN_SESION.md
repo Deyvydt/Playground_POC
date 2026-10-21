@@ -178,10 +178,12 @@ governance :8100 ── db "governance": registro, kill switch, monitor, notific
 
 ## Pruebas automatizadas (2026-10-21)
 Spec `specs/003-test-automation/`. `./scripts/run-tests.sh` (o `.ps1` en Windows)
-ejecuta 326 pruebas funcionales y técnicas de backend, governance y agent-lab sin
-servicios externos y deja el reporte en `reports/`. Encontraron y se corrigieron 4
+ejecuta 412 pruebas funcionales y técnicas de backend, governance y agent-lab sin
+servicios externos y deja el reporte en `reports/`. Encontraron y se corrigieron 5
 defectos (ver `specs/003-test-automation/tasks.md`); queda 1 hallazgo abierto (H001).
 Agente `disenador-pruebas` y skills `sdd-pruebas` y `sdd-specs` en `.claude/`.
+Siguiente trabajo (en PC física): `specs/004-system-integration/` (plan de pruebas por
+fases A/B/C y guía para conectar el sistema de otro equipo por la red local).
 
 ## Próximo paso
 Las 8 fases están implementadas. Falta la prueba final de la Fase 8 en tu red
