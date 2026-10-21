@@ -6,7 +6,9 @@ disponible en `http://localhost:8000/docs` (Swagger UI de FastAPI).
 
 Todas las rutas, salvo `/api/health` y `/api/auth/login`, requieren el header
 `Authorization: Bearer <token>`. Sin token válido responden `401`; sin el
-permiso del rol, `403`.
+permiso del rol, `403`. Un id inexistente (incluido uno fuera del rango de la base)
+responde `404`; ninguna solicitud válida según el OpenAPI debe producir un `5xx`
+(lo verifican las pruebas de contrato, ver `specs/003-test-automation/`).
 
 ## Autenticación
 
@@ -41,7 +43,7 @@ Subir y eliminar requiere el permiso `knowledge`. Formatos: PDF, TXT, MD (máx. 
 | Método | Ruta | Descripción |
 |---|---|---|
 | GET | `/api/agents/{id}/knowledge` | Lista documentos indexados de un agente |
-| POST | `/api/agents/{id}/knowledge` | Sube y fragmenta/embebe un documento (`multipart/form-data`, campo `file`) |
+| POST | `/api/agents/{id}/knowledge` | Sube y fragmenta/embebe un documento (`multipart/form-data`, campo `file`) → `201` con `{id, filename, chunk_count, ...}`; `400` formato/vacío, `413` tamaño, `503` sin embeddings |
 | DELETE | `/api/agents/knowledge/{document_id}` | Elimina un documento y sus fragmentos |
 
 ## Chat

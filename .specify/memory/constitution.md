@@ -1,5 +1,12 @@
 <!--
 Sync Impact Report
+- Version: 1.1.0 -> 1.2.0 (2026-10-21)
+- Gobernanza expandida: "Calidad verificable". Todo criterio de aceptación es
+  ejecutable (escenario Gherkin o prueba técnica) o se declara manual, y un cambio
+  no está terminado si scripts/run-tests.py no pasa.
+- Corrige la línea de versión, que seguía en 1.0.0 tras la enmienda 1.1.0.
+- Specs afectadas: specs/003-test-automation/{spec,plan,tasks}.md (nuevas);
+  specs/001 y specs/002 con criterios numerados y carpeta features/.
 - Version: 1.0.0 -> 1.1.0 (2026-10-14)
 - Principle II expandido: el gateway de LLMs (LiteLLM Proxy) es el adaptador único
   para todo consumo de modelos; ollama_client pasa a hablarle al gateway.
@@ -91,4 +98,11 @@ semver (MAYOR: retiro/redefinición incompatible de un principio; MENOR: nuevo
 principio o expansión material; PATCH: aclaración de redacción), y (3) revisar
 que `specs/*/plan.md` siga siendo consistente.
 
-**Versión**: 1.0.0 | **Ratificada**: 2026-09-30 | **Última enmienda**: 2026-09-30
+**Calidad verificable.** Cada criterio de aceptación de un spec se identifica como
+`CA-<historia>.<número>` y es ejecutable: un escenario Gherkin en
+`specs/<feature>/features/` o una prueba técnica. Lo que no se puede automatizar
+se declara como validación manual en `specs/003-test-automation/plan.md`. Un
+cambio está terminado cuando su spec está actualizado y `scripts/run-tests.py`
+termina con código 0. Una prueba que falla por un defecto real no se desactiva.
+
+**Versión**: 1.2.0 | **Ratificada**: 2026-09-30 | **Última enmienda**: 2026-10-21

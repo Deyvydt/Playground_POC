@@ -69,6 +69,12 @@ iteración del POC (todas las tareas P1–P2 completadas para la demo).
 - [X] T109 Manejo controlado de fallas del motor de modelos (503 + métrica fallida + traza)
 - [X] T110 Eliminación de textos internos de la interfaz ("POC", "prototipo", metodología)
 
+## Fase 11 — Iteración 3: pruebas automatizadas (ver `specs/003-test-automation/`)
+- [X] T120 Criterios de aceptación numerados y escenarios Gherkin en `features/`
+- [X] T121 Pruebas técnicas (unitarias, API, contrato) y funcionales del backend
+- [X] T122 Corrección de defectos encontrados: respuesta vacía al subir conocimiento,
+  500 con ids fuera de rango, firma de token no ASCII
+
 ## Backlog explícito (fuera de esta iteración)
 
 - [ ] T090 SSO corporativo (reemplazar el login local)

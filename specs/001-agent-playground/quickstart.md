@@ -69,6 +69,21 @@ el puerto 8000 (ver `vite.config.js`), por lo que ambos deben estar corriendo.
 
 Atajos: `Ctrl+K` buscador global, `Ctrl+B` plegar el menú lateral.
 
+## 4. Pruebas automatizadas
+
+No necesitan Ollama ni los servicios levantados:
+
+```bash
+# Windows
+.\scripts\run-tests.ps1
+# Linux / macOS / CI
+./scripts/run-tests.sh
+```
+
+Crean `.venv-tests/` la primera vez y dejan el reporte en `reports/reporte.html`.
+Opciones: `--tipo funcional|tecnica`, `--componente backend|governance|agent-lab`,
+`--rapido` (sin pruebas de contrato). Detalle en `specs/003-test-automation/plan.md`.
+
 ## Solución de problemas
 
 | Síntoma | Causa probable | Solución |

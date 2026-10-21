@@ -45,3 +45,8 @@ Generado a partir de `plan.md`.
 ## Fase 8 — Red local y documentación
 - [x] T080 Modo servidor · T081 README · T082 `docker-compose.yml`
 - [ ] T083 Prueba final desde otra PC de la red (manual)
+
+## Fase 9 — Pruebas automatizadas (ver `specs/003-test-automation/`)
+- [x] T090 Escenarios Gherkin de US-2, US-3, US-4, US-6 y US-7 en `features/`
+- [x] T091 Pruebas técnicas y funcionales de governance y agent-lab
+- [x] T092 Corrección de defectos: 500 con token no ASCII y con cuerpo no JSON en el webhook

@@ -2,7 +2,7 @@
 
 **Feature branch**: `002-llm-gateway`
 **Creado**: 2026-10-14
-**Estado**: Borrador aprobado — Opción 2 en implementación
+**Estado**: Implementada (Opción 2) — fases 0 a 8; pendiente la prueba final en red local
 **Entrada**: "Que todo consumo de modelos (proveedores en la nube y modelos locales)
 pase por un solo punto con control, supervisión y observabilidad. Los agentes de
 los sistemas de la empresa no usan API keys reales, sino virtual keys emitidas por
@@ -32,6 +32,8 @@ permite pausar un agente (kill switch) y muestra su consumo.
 
 ## Historias de Usuario (por prioridad)
 
+Cada criterio se identifica como `CA-<historia>.<número>` y se automatiza en `features/`.
+
 ### US-1 — Consumir modelos solo con virtual key (P1)
 Como encargado de un sistema, quiero apuntar mi agente a la URL de TokenIO con una
 virtual key, para no manejar API keys reales del proveedor.
@@ -48,12 +50,15 @@ encargado, modelos, presupuesto y límites, y recibir su virtual key.
 1. Al guardar, la key se muestra **una sola vez** con una guía de conexión.
 2. El registro guarda solo alias y hash de la key, nunca la key en claro.
 3. Si la key se pierde, se puede regenerar; la anterior deja de funcionar.
+4. Solo un administrador registra agentes, regenera keys, edita límites o da de baja.
 
 ### US-3 — Presupuestos y límites por área y por agente (P1)
 1. Jerarquía: Organización → Área (team) → Sistema → Agente (key).
 2. Cada key tiene modelos permitidos, `max_budget` + periodo y límites rpm/tpm.
 3. Al exceder el presupuesto, las llamadas son rechazadas.
 4. Los modelos locales tienen costo interno > 0 para que el presupuesto aplique.
+5. Cambiar los límites de un agente actualiza su key en el gateway.
+6. Cada área muestra su gasto frente a su presupuesto (team del gateway).
 
 ### US-4 — Kill switch y auto-pausa con aviso (P1)
 1. Un administrador pausa un agente: su estado cambia a `pausado` y su key queda
@@ -73,9 +78,22 @@ Como desarrollador, quiero ejecutar desde TokenIO agentes que simulan Talentia y
 AgentFactory, construidos como grafos LangGraph, cada nodo con su propia virtual
 key, para validar el gobierno sin depender de los sistemas reales.
 
+1. Talentia: con puntaje ≥ 70 el candidato pasa a entrevista; si no, recibe un
+   mensaje de rechazo.
+2. AgentFactory: si el revisor tiene observaciones, el código se regenera (máximo
+   2 rondas) antes de generar tests y documentación.
+3. Cada nodo llama al modelo con su propia virtual key y con el id de la ejecución
+   como traza.
+4. Si un nodo está pausado, el grafo se detiene en ese nodo con un mensaje claro.
+
 ### US-7 — Agentes actuales de TokenIO bajo gobierno (P2)
 Los 6 agentes existentes de TokenIO consumen modelos a través del gateway con sus
 virtual keys (área `plataforma`), sin cambiar su comportamiento.
+
+1. Con `LLM_GATEWAY_URL` definido, el chat llama al gateway con la key del agente y
+   metadatos de traza (tags de agente, área y sistema; sesión = conversación).
+2. Si el gateway rechaza al agente (pausado o sin presupuesto), el chat responde
+   503 con un mensaje claro.
 
 ### US-8 — Modo servidor en red local (P3)
 Compañeros en la misma red usan virtual keys contra la PC que corre TokenIO y su
