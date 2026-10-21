@@ -37,10 +37,11 @@ Generado a partir de `plan.md`.
 - [x] T051 Keys de los 6 agentes y alias de modelos
 
 ## Fase 6 — Langfuse
-- [ ] T060 Callbacks del gateway sin contenido + metadata por ejecución
+- [x] T060 Callbacks del gateway sin contenido + metadata por ejecución
 
 ## Fase 7 — UI
-- [ ] T070 Gobierno · T071 Registro de agentes · T072 Notificaciones · T073 Laboratorio
+- [x] T070 Gobierno · T071 Registro de agentes · T072 Notificaciones · T073 Laboratorio
 
 ## Fase 8 — Red local y documentación
-- [ ] T080 Modo servidor · T081 README · T082 `docker-compose.yml`
+- [x] T080 Modo servidor · T081 README · T082 `docker-compose.yml`
+- [ ] T083 Prueba final desde otra PC de la red (manual)

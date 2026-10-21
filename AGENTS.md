@@ -38,6 +38,15 @@ React + Vite (frontend/, puerto 5173)
 - El frontend no tiene estado de servidor propio: todo viene de `backend/app/api`
   vía `frontend/src/api/client.js`.
 
+### Gobierno de LLMs (`services/`, spec `specs/002-llm-gateway/`)
+
+Opcional: si `backend/.env` define `LLM_GATEWAY_URL`, `ollama_client.py` llama al
+gateway LiteLLM (:4000) con la virtual key de cada agente en vez de a Ollama.
+`services/governance` (:8100) registra agentes y keys y aplica el kill switch;
+`services/agent-lab` (:8200) corre los grafos de prueba. El frontend los usa en
+las páginas Gobierno y Laboratorio (proxy `^/gov/` y `^/lab/`). Guía de operación:
+`services/README.md`; en Windows, `scripts/dev-up.ps1` levanta todo en orden.
+
 ## Cómo correr el proyecto
 
 Ver `specs/001-agent-playground/quickstart.md` para el paso a paso completo.

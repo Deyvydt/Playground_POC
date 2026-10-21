@@ -1,7 +1,7 @@
-# Resumen de la sesión — Gobierno de LLMs en TokenIO (2026-10-14, actualizado 2026-10-16)
+# Resumen de la sesión — Gobierno de LLMs en TokenIO (2026-10-14, actualizado 2026-10-21)
 
 Contexto para retomar el trabajo en otra máquina o con otro asistente.
-Lo pendiente está en `FASES_PENDIENTES.md`.
+Estado de las fases en `FASES_PENDIENTES.md`; cómo levantar y operar todo en `services/README.md`.
 
 ## Quién y cómo trabajar
 - David, ingeniero de software/IA en formación. Prefiere respuestas cortas y,
@@ -116,6 +116,32 @@ governance :8100 ── db "governance": registro, kill switch, monitor, notific
   sumarle la columna a mano (`ALTER TABLE agent ADD COLUMN gateway_key_enc
   TEXT`) porque SQLite no migra solo.
 
+- Fase 6 (2026-10-21) — Langfuse vía el gateway. `gateway_config.py` genera
+  una config efectiva con `success_callback`/`failure_callback: ["langfuse"]` y
+  `turn_off_message_logging: true` solo si `LANGFUSE_PUBLIC_KEY` y
+  `LANGFUSE_SECRET_KEY` están en `.env` (lo usan `start.py` y Docker). El backend
+  envía `metadata` (trace_id, trace_name, generation_name, session_id, tags) en
+  cada llamada: una traza por turno de chat y por flujo. agent-lab usa
+  `trace_id = run_id`: una traza por ejecución del grafo, una generación por
+  nodo. Verificado con el gateway real contra un receptor OTLP local: mismo
+  trace_id → misma traza, tags y tokens presentes, texto del prompt ausente.
+- Fase 7 (2026-10-21) — UI en TokenIO: páginas **Gobierno** (áreas con gasto vs
+  presupuesto, agentes por sistema, pausa con motivo, reactivar, límites,
+  regenerar key, baja, nuevo sistema, detalle con actividad de 24 h) y
+  **Laboratorio** (Talentia/AgentFactory nodo por nodo), registro de agentes con
+  key mostrada una vez + guía de conexión, campana de avisos (sondeo 30 s).
+  Nuevo permiso `govern` (solo admin). Proxy de Vite con regex (`^/lab/`):
+  `/lab` a secas capturaba la ruta `/laboratorio`. Probado en navegador
+  (Playwright) con los cuatro servicios reales: admin opera todo; viewer ve
+  pero no tiene botones de pausar ni registrar, y governance le responde 403.
+- Fase 8 (2026-10-21) — `services/README.md` (puesta en marcha, Langfuse, red
+  local, guía para compañeros Python/Java/cURL, Docker, Opción 1),
+  `scripts/dev-up.ps1` (levanta todo en orden, `-Lan`, `-SinLab`; validado con el
+  parser de PowerShell, UTF-8 con BOM para Windows PowerShell 5.1),
+  `services/docker-compose.yml` + Dockerfiles de governance y agent-lab (imagen
+  `ghcr.io/berriai/litellm:v1.105.1`, validado con `docker compose config`).
+  Pendiente de probar en tu red: la prueba final desde otra PC.
+
 ## Problemas encontrados y soluciones (importante en la PC de TCS)
 - **Ruta larga en Windows (>260 caracteres)** al instalar LiteLLM → instalar el
   `.venv` dentro de `services/<servicio>/`.
@@ -144,11 +170,18 @@ governance :8100 ── db "governance": registro, kill switch, monitor, notific
 - `temperature: "abc"` provoca un 500 del modelo (útil para probar la auto-pausa
   por errores).
 - Admin UI de LiteLLM: `http://127.0.0.1:4000/ui` (login con la master key).
+- Códigos del gateway (verificados): 401 key inválida o bloqueada, 403 modelo
+  no permitido, 422 presupuesto agotado, 429 límite por minuto.
+- Langfuse 4 recibe las trazas por OTLP (`/api/public/otel/v1/traces`); LiteLLM
+  convierte `metadata.trace_id` en un trace id OTEL determinista.
+- Las respuestas simuladas (`mock_response`) no se guardan en `LiteLLM_SpendLogs`.
 
 ## Próximo paso
-Fase 6 (Langfuse). Pendiente aparte, no bloqueante: en esta máquina el puerto
-8000 del backend quedó ocupado por un proceso que ni PowerShell ni el
-terminal pueden ver ni matar (probablemente residuo de reinicios repetidos
-del backend durante la Fase 5); se validó todo en el puerto 8001 como
-alternativa. Revisar con David (Administrador de tareas) antes de levantar el
-backend de nuevo en :8000. Ver `FASES_PENDIENTES.md`.
+Las 8 fases están implementadas. Falta la prueba final de la Fase 8 en tu red
+(un compañero usa su key de `desarrollo` desde otra PC; su consumo aparece en
+**Gobierno** y se le puede pausar) y, si se desea, crear el proyecto en
+Langfuse y poner sus keys en `services/gateway/.env`.
+
+Nota de la PC de TCS (2026-10-16): el puerto 8000 quedó ocupado por un proceso
+invisible tras reinicios repetidos del backend; se validó en :8001. Revisar con
+el Administrador de tareas antes de levantar el backend en :8000.

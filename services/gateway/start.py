@@ -8,40 +8,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 import certs
+import gateway_config
 import start_db
 
 HERE = Path(__file__).resolve().parent
 load_dotenv(HERE / ".env")
-
-LANGFUSE_SETTINGS = {
-    "success_callback": ["langfuse"],
-    "failure_callback": ["langfuse"],
-    # Solo tokens, costo, latencia y errores: el texto de prompts y respuestas no sale del gateway.
-    "turn_off_message_logging": True,
-}
-
-
-def langfuse_enabled() -> bool:
-    return bool(os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY"))
-
-
-def effective_config() -> Path:
-    """config.yaml tal cual, o una copia con los callbacks de Langfuse si hay credenciales en .env.
-
-    Así el gateway arranca igual sin Langfuse, y nadie edita config.yaml para activarlo.
-    """
-    base = HERE / "config.yaml"
-    if not langfuse_enabled():
-        return base
-    import yaml
-
-    config = yaml.safe_load(base.read_text(encoding="utf-8"))
-    config.setdefault("litellm_settings", {}).update(LANGFUSE_SETTINGS)
-    target = HERE.parent / ".data" / "gateway-config.yaml"
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(yaml.safe_dump(config, sort_keys=False, allow_unicode=True), encoding="utf-8")
-    return target
-
 
 def ensure_prisma_client() -> None:
     """La imagen Docker de LiteLLM trae el cliente Prisma generado; con pip hay que generarlo una vez por versión."""
@@ -64,8 +35,9 @@ if __name__ == "__main__":
     ensure_prisma_client()
     start_db.start()
     litellm = Path(sys.executable).parent / "litellm"
-    config = effective_config()
-    print(f"Trazas en Langfuse: {'activadas (' + os.getenv('LANGFUSE_HOST', 'cloud') + ')' if langfuse_enabled() else 'desactivadas'}")
+    config = gateway_config.effective_config(HERE.parent / ".data" / "gateway-config.yaml")
+    langfuse = f"activadas ({os.getenv('LANGFUSE_HOST', 'cloud')})" if gateway_config.langfuse_enabled() else "desactivadas"
+    print(f"Trazas en Langfuse: {langfuse}")
     cmd = [
         str(litellm),
         "--config", str(config),

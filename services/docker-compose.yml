@@ -1,0 +1,85 @@
+# Gobierno de LLMs en contenedores: Postgres + gateway + governance + agent-lab.
+# El backend y el frontend de TokenIO, y Ollama, siguen corriendo en la máquina anfitriona.
+#
+# Requisitos: los tres .env ya creados (gateway/.env, governance/.env, agent-lab/.env).
+# Uso (desde services/):
+#   docker compose --env-file governance/.env up -d --build
+#   docker compose exec gateway python /gateway/bootstrap.py      # una vez: crea los teams
+#   docker compose exec agent-lab python provision.py              # una vez: registra los 8 nodos
+#
+# --env-file governance/.env aporta WEBHOOK_TOKEN para armar la URL del webhook de alertas.
+# Los nombres de host (127.0.0.1) de los .env se reemplazan aquí por los de la red de Docker.
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: litellm
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    ports:
+      - "127.0.0.1:5433:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      retries: 10
+
+  gateway:
+    image: ghcr.io/berriai/litellm:v1.105.1
+    env_file: gateway/.env
+    environment:
+      DATABASE_URL: postgresql://postgres@postgres:5432/litellm
+      OLLAMA_API_BASE: http://host.docker.internal:11434
+      WEBHOOK_URL: http://governance:8100/gov/alerts/gateway?token=${WEBHOOK_TOKEN:?usa --env-file governance/.env}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./gateway:/gateway:ro
+    # Misma lógica que start.py: si LANGFUSE_* está en gateway/.env se activan las trazas.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - exec docker/prod_entrypoint.sh --config "$$(python /gateway/gateway_config.py /tmp/gateway-config.yaml)" --port 4000
+    ports:
+      # 0.0.0.0: accesible desde otras PCs de la red local (abrir el puerto en el firewall).
+      - "0.0.0.0:4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  governance:
+    build: governance
+    env_file: governance/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres@postgres:5432/governance
+      GATEWAY_URL: http://gateway:4000
+      IDENTITY_URL: http://host.docker.internal:8000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "127.0.0.1:8100:8100"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      gateway:
+        condition: service_started
+
+  agent-lab:
+    build: agent-lab
+    env_file: agent-lab/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres@postgres:5432/agentlab
+      GATEWAY_URL: http://gateway:4000
+      GOVERNANCE_URL: http://governance:8100
+      IDENTITY_URL: http://host.docker.internal:8000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "127.0.0.1:8200:8200"
+    depends_on:
+      - governance
+
+volumes:
+  pgdata:

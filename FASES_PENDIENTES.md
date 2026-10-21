@@ -3,8 +3,9 @@
 Guía para continuar la implementación en otra máquina. Contexto completo de la
 sesión en `RESUMEN_SESION.md`; especificación en `specs/002-llm-gateway/`.
 
-**Estado al 2026-10-16**: Fases 0, 1, 2, 3, 4 y 5 terminadas y probadas.
-**Faltan 3 fases: 6, 7 y 8.**
+**Estado al 2026-10-21**: las 8 fases están implementadas. Solo falta la
+prueba final de la Fase 8 desde otra PC de tu red (ver abajo).
+La guía de operación vigente es `services/README.md` (incluye `scripts/dev-up.ps1`).
 
 ---
 
@@ -153,7 +154,7 @@ gateway_key_enc TEXT` (SQLite no migra solo).
 
 ---
 
-## Fase 6 — Langfuse (trazas)
+## Fase 6 — Langfuse (trazas) ✅ terminada
 
 - Crear proyecto en Langfuse Cloud (o self-hosted con Docker en tu máquina).
 - `services/gateway/config.yaml`:
@@ -174,9 +175,13 @@ gateway_key_enc TEXT` (SQLite no migra solo).
 **Aceptación**: en Langfuse se ven trazas por agente con tokens, costo,
 latencia y errores, sin el texto de los prompts.
 
+**Hecho (2026-10-21)**: la lógica vive en `services/gateway/gateway_config.py`
+(sin editar `config.yaml`). Verificado con el gateway real y un receptor OTLP
+local; con un proyecto de Langfuse real solo falta poner sus keys en `.env`.
+
 ---
 
-## Fase 7 — UI en TokenIO
+## Fase 7 — UI en TokenIO ✅ terminada
 
 ⚠️ Toca el frontend. Respetar AGENTS.md: paleta `ink/mist/accent`, clases
 `btn-*`, `input`, `card`, íconos `lucide-react` + `Tooltip`, textos en español
@@ -201,9 +206,12 @@ sin mencionar librerías ni "POC".
 **Aceptación**: todo se opera desde TokenIO; un viewer ve pero no puede pausar
 ni crear keys.
 
+**Hecho (2026-10-21)**: `frontend/src/pages/Governance.jsx`, `Lab.jsx`,
+`components/NotificationBell.jsx`; permiso `govern` en `backend/app/security.py`.
+
 ---
 
-## Fase 8 — Modo servidor en red local + documentación
+## Fase 8 — Modo servidor en red local + documentación ✅ implementada (falta la prueba final)
 
 - Gateway: `GATEWAY_HOST=0.0.0.0` en `services/gateway/.env`; en governance
   `GATEWAY_PUBLIC_URL=http://<ip-de-tu-pc>:4000` (es lo que aparece en la guía
@@ -223,3 +231,6 @@ ni crear keys.
 
 **Aceptación (prueba final)**: desde otra PC de la red, un compañero usa su
 virtual key de `desarrollo`; su consumo aparece en TokenIO y se le puede pausar.
+
+**Hecho (2026-10-21)**: `services/README.md`, `scripts/dev-up.ps1`,
+`services/docker-compose.yml`. **Pendiente**: la prueba final (requiere tu red).
