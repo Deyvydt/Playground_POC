@@ -87,4 +87,36 @@ export const metricsTimeseries = (days = 14, agentId) =>
   api.get("/metrics/timeseries", { params: { days, agent_id: agentId } }).then((r) => r.data);
 export const metricsActivity = (limit = 8) => api.get("/metrics/activity", { params: { limit } }).then((r) => r.data);
 
+// Servicios de gobierno (governance :8100) y laboratorio (agent-lab :8200): validan el mismo token de sesión.
+const withSession = (instance) => {
+  instance.interceptors.request.use((config) => {
+    const token = getToken();
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+  });
+  return instance;
+};
+const gov = withSession(axios.create({ baseURL: "/gov" }));
+const lab = withSession(axios.create({ baseURL: "/lab" }));
+
+export const govHealth = () => gov.get("/health", { timeout: 5000 }).then((r) => r.data);
+export const govAreas = () => gov.get("/areas").then((r) => r.data);
+export const govSistemas = () => gov.get("/sistemas").then((r) => r.data);
+export const govCreateSistema = (payload) => gov.post("/sistemas", payload).then((r) => r.data);
+export const govAgents = (params) => gov.get("/agents", { params }).then((r) => r.data);
+export const govAgent = (id) => gov.get(`/agents/${id}`).then((r) => r.data);
+export const govAgentActivity = (id, minutes = 1440) =>
+  gov.get(`/agents/${id}/activity`, { params: { minutes } }).then((r) => r.data);
+export const govRegisterAgent = (payload) => gov.post("/agents", payload).then((r) => r.data);
+export const govUpdateAgent = (id, payload) => gov.patch(`/agents/${id}`, payload).then((r) => r.data);
+export const govPauseAgent = (id, reason) => gov.post(`/agents/${id}/pause`, { reason }).then((r) => r.data);
+export const govResumeAgent = (id) => gov.post(`/agents/${id}/resume`).then((r) => r.data);
+export const govDeleteAgent = (id) => gov.delete(`/agents/${id}`);
+export const govRegenerateKey = (id) => gov.post(`/agents/${id}/regenerate-key`).then((r) => r.data);
+export const govNotifications = (limit = 30) => gov.get("/notifications", { params: { limit } }).then((r) => r.data);
+export const govMarkRead = (id) => gov.post(`/notifications/${id}/read`).then((r) => r.data);
+export const govMarkAllRead = () => gov.post("/notifications/read-all").then((r) => r.data);
+
+export const labRun = (sistema, payload) => lab.post(`/runs/${sistema}`, payload).then((r) => r.data);
+
 export default api;

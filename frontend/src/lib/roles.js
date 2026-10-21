@@ -12,4 +12,5 @@ export const PERMISSION_LABELS = [
   { id: "metrics", label: "Ver consumo y métricas" },
   { id: "delete", label: "Eliminar agentes" },
   { id: "manage_users", label: "Gestionar usuarios" },
+  { id: "govern", label: "Pausar agentes y emitir keys del gateway" },
 ];

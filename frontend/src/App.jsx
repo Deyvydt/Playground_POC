@@ -9,6 +9,8 @@ import Agents from "./pages/Agents";
 import AgentDetail from "./pages/AgentDetail";
 import Flows from "./pages/Flows";
 import Usage from "./pages/Usage";
+import Governance from "./pages/Governance";
+import Lab from "./pages/Lab";
 import UsersPage from "./pages/UsersPage";
 import SettingsPage from "./pages/SettingsPage";
 import { useSession } from "./context/SessionContext";
@@ -78,6 +80,8 @@ function Shell() {
               <Route path="/agentes/:agentId" element={<AgentDetail />} />
               <Route path="/flujos" element={<Flows />} />
               <Route path="/consumo" element={<Guard permission="metrics"><Usage /></Guard>} />
+              <Route path="/gobierno" element={<Governance />} />
+              <Route path="/laboratorio" element={<Lab />} />
               <Route path="/usuarios" element={<Guard permission="manage_users"><UsersPage /></Guard>} />
               <Route path="/configuracion" element={<SettingsPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />

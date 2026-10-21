@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Tooltip from "./Tooltip";
+import NotificationBell from "./NotificationBell";
 import { health } from "../api/client";
 
 function EngineStatus() {
@@ -38,6 +39,7 @@ export default function PageHeader({ title, description, actions, eyebrow }) {
         </motion.div>
         <div className="flex shrink-0 items-center gap-2.5">
           <EngineStatus />
+          <NotificationBell />
           {actions}
         </div>
       </div>
