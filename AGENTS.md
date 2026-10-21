@@ -47,6 +47,11 @@ gateway LiteLLM (:4000) con la virtual key de cada agente en vez de a Ollama.
 las páginas Gobierno y Laboratorio (proxy `^/gov/` y `^/lab/`). Guía de operación:
 `services/README.md`; en Windows, `scripts/dev-up.ps1` levanta todo en orden.
 
+## Ramas
+
+`main` (producción) ← `staging` (QA) ← `develop` (desarrollo) ← `feature/<tema>`.
+Todo cambio entra por PR; ver `CONTRIBUTING.md`.
+
 ## Cómo correr el proyecto
 
 Ver `specs/001-agent-playground/quickstart.md` para el paso a paso completo.
