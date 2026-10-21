@@ -96,8 +96,26 @@ descargados (este último es obligatorio para que el RAG funcione).
   actualizar `spec.md`/`plan.md` — está explícitamente fuera de alcance de esta
   iteración (Principio V).
 
-## Testing manual
+## Pruebas (spec `specs/003-test-automation/`)
 
-No hay suite de tests automatizados en este POC (fuera de alcance). Antes de dar
-un cambio por terminado: levantar backend + frontend, y validar manualmente el
-flujo afectado según el guion de `quickstart.md`.
+Suite automatizada, sin Ollama ni servicios levantados:
+
+```bash
+./scripts/run-tests.sh            # Linux/macOS/CI   (Windows: .\scripts\run-tests.ps1)
+./scripts/run-tests.sh --rapido   # sin pruebas de contrato
+```
+
+Reporte en `reports/reporte.html` (más `.md`, `.json` y JUnit). Código de salida
+0 = todo pasó.
+
+- **Funcionales**: escenarios Gherkin en español en `specs/<feature>/features/*.feature`,
+  con tags `@spec-NNN @US-N @CA-N.M`; los pasos viven en `tests/<componente>/bdd/conftest.py`.
+- **Técnicas**: `tests/<componente>/{unit,api,contract}/` (contrato = Schemathesis
+  sobre el OpenAPI; ninguna solicitud debe producir un 5xx).
+- Cada componente corre en su propio proceso: no ejecutes `pytest tests` entero.
+- Ninguna prueba toca Ollama, LiteLLM ni Postgres: usar los dobles de `tests/<componente>/fakes.py`.
+
+Un cambio está terminado cuando: (1) el spec refleja el comportamiento (skill
+`sdd-specs`), (2) cada criterio nuevo tiene escenario o prueba (skill `sdd-pruebas`
+o agente `disenador-pruebas`), (3) `run-tests` pasa. Si el cambio toca la
+interfaz, valida además el flujo a mano según `quickstart.md`.
