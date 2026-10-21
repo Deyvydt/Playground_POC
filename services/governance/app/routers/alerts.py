@@ -14,9 +14,14 @@ router = APIRouter(prefix="/gov/alerts", tags=["alerts"])
 @router.post("/gateway")
 async def gateway_alert(request: Request, token: str = "", session: Session = Depends(get_session)):
     # El webhook del gateway no admite headers propios; el secreto viaja en la URL.
-    if not secrets.compare_digest(token, WEBHOOK_TOKEN):
+    if not secrets.compare_digest(token.encode(), WEBHOOK_TOKEN.encode()):
         raise HTTPException(401, "Token inválido")
-    payload = await request.json()
+    try:
+        payload = await request.json()
+    except ValueError as exc:
+        raise HTTPException(400, "El cuerpo del aviso no es JSON válido") from exc
+    if not isinstance(payload, dict):
+        raise HTTPException(400, "El cuerpo del aviso debe ser un objeto JSON")
     event = payload.get("event", "")
     message = payload.get("event_message") or event
     agente = None

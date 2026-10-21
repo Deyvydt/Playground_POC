@@ -26,7 +26,7 @@ class Caller:
 
 async def get_caller(request: Request) -> Caller:
     service_token = request.headers.get("X-Service-Token", "")
-    if service_token and secrets.compare_digest(service_token, SERVICE_TOKEN):
+    if service_token and secrets.compare_digest(service_token.encode(), SERVICE_TOKEN.encode()):
         return Caller(name=request.headers.get("X-Service-Name", "servicio"), role="service")
 
     token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()

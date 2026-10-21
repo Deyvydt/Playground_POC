@@ -54,7 +54,7 @@ def _decode_token(token: str) -> int | None:
     except ValueError:
         return None
     expected = _b64(hmac.new(SECRET_KEY.encode(), payload.encode(), hashlib.sha256).digest())
-    if not hmac.compare_digest(expected, signature):
+    if not hmac.compare_digest(expected.encode(), signature.encode()):
         return None
     data = json.loads(_unb64(payload))
     if data.get("exp", 0) < time.time():

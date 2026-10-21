@@ -22,3 +22,8 @@ Thumbs.db
 # Servicios de gobierno de LLMs
 services/**/.env
 services/.data/
+
+# Pruebas automatizadas (scripts/run-tests.*)
+reports/
+.venv-tests/
+.hypothesis/

@@ -1,7 +1,8 @@
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlmodel import Session
 
 from app import gateway_keys
@@ -32,6 +33,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.exception_handler(OverflowError)
+async def id_out_of_range(request: Request, exc: OverflowError):
+    # Un id mayor que el entero de 64 bits de SQLite no puede existir: es un 404, no un error del servidor.
+    if "SQLite INTEGER" in str(exc):
+        return JSONResponse(status_code=404, content={"detail": "Recurso no encontrado"})
+    raise exc
+
 
 app.include_router(system.router)
 app.include_router(auth.router)

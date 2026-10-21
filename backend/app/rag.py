@@ -57,6 +57,8 @@ async def ingest_document(
             )
         )
     session.commit()
+    # El commit expira el objeto; sin refresh la API lo serializaría como {}.
+    session.refresh(doc)
     return doc
 
 
