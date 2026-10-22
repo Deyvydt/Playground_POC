@@ -9,6 +9,10 @@ Se ejecutan en computadoras físicas. Plan: `plan-de-pruebas.md`.
 
 ## Fase A — Agentes de TokenIO con modelos locales
 - [ ] T010 Ejecutar A-00 a A-62 y registrar evidencias en `evidencias/<fecha>/`
+  (2026-10-22: A-00, A-01, A-10..A-14, A-20, A-21 y A-40 pasaron; ver `evidencias/2026-10-22/resultados.md`)
+- [x] D001 Primer arranque sin conocimiento en el Asesor de Onboarding: `dev-up.ps1` ahora corre `bootstrap.py` antes del backend
+- [x] D002 Windows: LiteLLM se mandaba Ctrl+C con `os.kill(pid, 0)`; corregido con `services/gateway/win_compat.py`
+- [ ] D003 La ficha del agente muestra "Activo" aunque esté pausado en Gobierno (solo visual; el chat sí lo bloquea)
 
 ## Fase B — Proveedores (requiere API keys)
 - [ ] T020 Configurar `claude-sonnet` (u otro) en `config.yaml` y las keys en `.env`

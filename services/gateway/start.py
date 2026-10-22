@@ -34,12 +34,12 @@ if __name__ == "__main__":
     os.environ["PYTHONUTF8"] = "1"
     ensure_prisma_client()
     start_db.start()
-    litellm = Path(sys.executable).parent / "litellm"
     config = gateway_config.effective_config(HERE.parent / ".data" / "gateway-config.yaml")
     langfuse = f"activadas ({os.getenv('LANGFUSE_HOST', 'cloud')})" if gateway_config.langfuse_enabled() else "desactivadas"
     print(f"Trazas en Langfuse: {langfuse}")
     cmd = [
-        str(litellm),
+        sys.executable,
+        str(HERE / "win_compat.py"),
         "--config", str(config),
         "--host", os.getenv("GATEWAY_HOST", "127.0.0.1"),
         "--port", os.getenv("GATEWAY_PORT", "4000"),

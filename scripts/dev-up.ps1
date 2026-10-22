@@ -80,6 +80,12 @@ Write-Host "Levantando TokenIO..." -ForegroundColor White
 Start-TokenIOService "Gateway" $gateway ".venv\Scripts\python start.py"
 Wait-Url "Gateway" "http://127.0.0.1:4000/health/liveliness" 300
 
+# Las áreas (teams) deben existir antes de que el backend siembre el conocimiento vía gateway.
+# bootstrap.py es idempotente.
+Write-Host "-> Áreas del gateway" -ForegroundColor Cyan
+& "$gateway\.venv\Scripts\python.exe" "$gateway\bootstrap.py"
+if ($LASTEXITCODE -ne 0) { Write-Host "   bootstrap.py falló" -ForegroundColor Red; exit 1 }
+
 Start-TokenIOService "Governance" $governance ".venv\Scripts\python -m uvicorn app.main:app --port 8100"
 Wait-Url "Governance" "http://127.0.0.1:8100/gov/health"
 
@@ -89,6 +95,12 @@ Wait-Url "Backend" "http://127.0.0.1:8000/api/health"
 if (-not $SinLab) {
   Start-TokenIOService "Agent Lab" $agentLab ".venv\Scripts\python -m uvicorn app.main:app --port 8200"
   Wait-Url "Agent Lab" "http://127.0.0.1:8200/lab/health"
+  # Registra los nodos de prueba en governance; idempotente.
+  Push-Location $agentLab
+  & ".venv\Scripts\python.exe" "provision.py"
+  $provisionExit = $LASTEXITCODE
+  Pop-Location
+  if ($provisionExit -ne 0) { Write-Host "   provision.py falló" -ForegroundColor Red; exit 1 }
 }
 
 $viteArgs = if ($Lan) { "npm run dev -- --host" } else { "npm run dev" }
@@ -101,4 +113,3 @@ if ($Lan) {
   $ip = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike "127.*" -and $_.PrefixOrigin -ne "WellKnown" } | Select-Object -First 1).IPAddress
   Write-Host "En la red local: http://${ip}:5173 · gateway: http://${ip}:4000/v1" -ForegroundColor Green
 }
-Write-Host "Primera vez: en services\gateway ejecuta '.venv\Scripts\python bootstrap.py' y en services\agent-lab '.venv\Scripts\python provision.py'." -ForegroundColor DarkGray
