@@ -17,6 +17,14 @@ como alias de `llama3.2:3b` y `nomic-embed-text`). Langfuse Cloud (EU). Sin Dock
 | A-21 | 2026-10-22 | Pasó | capturas | | Pausado: "El agente está pausado por un administrador."; reactivado: responde normal. Obs.: la ficha del agente sigue mostrando "Activo" mientras está pausado en Gobierno |
 | A-40 | 2026-10-22 | Pasó | capturas | | Una traza por chat con rondas anidadas; tags `agente`, `área`, `sistema`; sesión `conversación-N`; entrada/salida `redacted-by-litellm` |
 
+## Video demo
+
+`demo-fase-a.mp4` (2 min, grabado con Playwright; las esperas del modelo se aceleran 12x):
+login → agentes → Soporte TI con herramienta y traza (A-10) → Asesor de Onboarding con
+conocimiento (A-12) → flujo Analista → Redactor (A-14) → consumo en Gobierno (A-20) →
+pausa, rechazo y reactivación (A-21) → Consumo. La página Consumo incluye datos de ejemplo
+sembrados. Langfuse no aparece (requiere login).
+
 ## Defectos
 
 **D001 — Primer arranque: el Asesor de Onboarding queda sin conocimiento.**
