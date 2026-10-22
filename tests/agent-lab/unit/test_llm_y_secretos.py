@@ -28,7 +28,7 @@ def test_call_node_usa_la_key_del_nodo_y_envia_la_traza(model):
     assert llamada["api_key"] == "sk-evaluador_ajuste" and llamada["model"] == "llama-local"
     assert llamada["base_url"] == "http://gateway.invalid:9/v1"
     assert llamada["metadata"] == {
-        "agent_id": 2, "sistema": "talentia", "area": "rrhh", "run_id": "run-42", "trace_id": "run-42",
+        "tokenio_agent_id": 2, "sistema": "talentia", "area": "rrhh", "run_id": "run-42", "trace_id": "run-42",
         "trace_name": "talentia · grafo", "generation_name": "evaluador_ajuste",
         "tags": ["agent:2", "area:rrhh", "sistema:talentia"],
     }
@@ -59,3 +59,11 @@ def test_nodo_sin_credencial_pide_ejecutar_provision():
     with pytest.raises(RuntimeError, match="provision.py"):
         secrets.get_credential("talentia", "inexistente")
     assert secrets.exists("talentia", "analizador_cv") and not secrets.exists("talentia", "inexistente")
+
+
+@pytest.mark.regresion
+def test_la_metadata_no_usa_el_campo_reservado_agent_id_de_litellm(model):
+    """Regresión D006: LiteLLM guarda metadata.agent_id en una columna de texto; un número hacía
+    que Postgres rechazara el registro y la llamada no aparecía en la actividad del agente."""
+    asyncio.run(llm.call_node("talentia", "analizador_cv", "s", "e", "r"))
+    assert "agent_id" not in model.calls[0]["metadata"]

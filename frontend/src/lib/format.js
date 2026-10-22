@@ -4,7 +4,13 @@ const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD",
 
 export const fmtNumber = (n) => nf.format(Math.round(n || 0));
 export const fmtCompact = (n) => compact.format(n || 0);
-export const fmtUSD = (n) => usd.format(n || 0);
+const usdFine = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 4 });
+// Los modelos locales cuestan fracciones de centavo por llamada: con 2 decimales todo se vería como $0.00.
+export const fmtUSD = (n) => {
+  if (!n) return usd.format(0);
+  if (Math.abs(n) < 0.0001) return "< $0.0001";
+  return Math.abs(n) < 0.01 ? usdFine.format(n) : usd.format(n);
+};
 export const fmtPct = (n) => `${((n || 0) * 100).toFixed(1)}%`;
 
 export const fmtLatency = (ms) => {
