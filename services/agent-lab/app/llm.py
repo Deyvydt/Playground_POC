@@ -27,8 +27,10 @@ async def call_node(sistema: str, nodo: str, system_prompt: str, human_content: 
     llm = ChatOpenAI(base_url=f"{GATEWAY_URL}/v1", api_key=key, model=MODEL_ALIAS, temperature=0.2)
     area = SISTEMA_AREA[sistema]
     # trace_id = run_id: en Langfuse cada ejecución del grafo es una traza y cada nodo una generación.
+    # "agent_id" está reservado por LiteLLM (columna de texto en sus logs de gasto): con un número,
+    # Postgres rechaza la fila y la llamada desaparece de la actividad y del monitor de errores.
     metadata = {
-        "agent_id": agente_id,
+        "tokenio_agent_id": agente_id,
         "sistema": sistema,
         "area": area,
         "run_id": run_id,
