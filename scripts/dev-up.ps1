@@ -77,8 +77,13 @@ if (-not $SinLab) {
 Write-Host "Levantando TokenIO..." -ForegroundColor White
 
 # start.py arranca Postgres (:5433) y luego el gateway (:4000).
-Start-TokenIOService "Gateway" $gateway ".venv\Scripts\python start.py"
-Wait-Url "Gateway" "http://127.0.0.1:4000/health/liveliness" 300
+try { $gwUp = (Invoke-WebRequest "http://127.0.0.1:4000/health/liveliness" -UseBasicParsing -TimeoutSec 3).StatusCode -eq 200 } catch { $gwUp = $false }
+if ($gwUp) { Write-Host "-> Gateway ya estaba en línea" -ForegroundColor Green }
+else {
+  Start-TokenIOService "Gateway" $gateway ".venv\Scripts\python start.py"
+  # El primer arranque prepara Prisma (hasta 600 s); los siguientes tardan ~20 s.
+  Wait-Url "Gateway" "http://127.0.0.1:4000/health/liveliness" 660
+}
 
 # Las áreas (teams) deben existir antes de que el backend siembre el conocimiento vía gateway.
 # bootstrap.py es idempotente.

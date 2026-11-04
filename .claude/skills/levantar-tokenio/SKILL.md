@@ -111,3 +111,6 @@ con tags `agente`, `área`, `sistema` y el texto `redacted-by-litellm`.
 | Error 404 "El equipo no existe" en Langfuse | Faltó `bootstrap.py` | `dev-up.ps1` lo corre; manual: `services\gateway\.venv\Scripts\python services\gateway\bootstrap.py` |
 | Login o tablas raras tras actualizar el repo | `backend/data/playground.db` de una versión anterior | Renombrarla (backup) y reiniciar el backend: se crea y siembra una nueva |
 | Los costos se ven $0.00 | Costo interno ficticio de modelos locales, redondeado | Normal; Langfuse muestra el valor exacto |
+| `dev-up.ps1` dice "Gateway no respondió" la primera vez | El primer arranque prepara Prisma (puede pasar de 5 min) | Ya corregido: espera 660 s y reutiliza un gateway que ya esté en línea. Si igual falla, volver a correr `dev-up.ps1` |
+
+Para conectar sistemas de otros equipos (TalentIA, agentIA_v2) y probar con GenAI Lab de TCS, seguir `specs/004-system-integration/guia-oficina.md`.
