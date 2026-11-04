@@ -38,23 +38,27 @@ model_list:
       output_cost_per_token: 0
 
   # --- GenAI Lab de TCS (solo desde la red de TCS/VPN) ---
-  # 1) .venv\Scripts\python probar_genailab.py  -> dice el mejor modelo que responde.
-  # 2) Descomentar, reemplazar MODELO por ese nombre (p. ej. genailab-maas-sonnet-4.6)
-  #    y dejar un bloque por cada key que respondió OK (mismo model_name = balanceo).
+  # SWITCH DE 2 MIN cuando haya keys VÁLIDAS (ver guia-oficina.md, estado 2026-11-04):
+  # 1) Pegar las keys vigentes en services/gateway/.env (GENAILAB_API_KEY_1..6).
+  # 2) Descomentar los bloques de abajo (ya traen el modelo más potente,
+  #    "genailab-maas-gpt-5.3-codex"; catálogo completo en setup_copilot_tcs.py de agentIA_v2).
+  #    Un bloque por cada key que responda 200 (mismo model_name = balanceo).
   # 3) Comentar los alias locales "gpt-4o-mini" y "llama-local" de arriba y reiniciar el gateway.
   #    Los clientes no cambian nada: siguen pidiendo "gpt-4o-mini" / "llama-local".
-  #    Sin input/output_cost_per_token: LiteLLM usa el precio real si conoce el modelo.
+  # OJO: al 2026-11-04 las keys del Excel Peru.xlsx dan 401 "Unable to find token" (no están
+  #      provisionadas en genailab.tcs.in; rotan cada semana). Verificar primero con probar_genailab.py.
+  #      NOTA: /v1/models da 401 aun con key; el endpoint que sí funciona es /v1/chat/completions.
   # - model_name: gpt-4o-mini            # alias que usa TalentIA
-  #   litellm_params: {model: openai/MODELO, api_base: os.environ/GENAILAB_API_BASE, api_key: os.environ/GENAILAB_API_KEY_1}
+  #   litellm_params: {model: openai/genailab-maas-gpt-5.3-codex, api_base: os.environ/GENAILAB_API_BASE, api_key: os.environ/GENAILAB_API_KEY_1}
   #   model_info: {access_groups: ["local-models"]}
   # - model_name: gpt-4o-mini
-  #   litellm_params: {model: openai/MODELO, api_base: os.environ/GENAILAB_API_BASE, api_key: os.environ/GENAILAB_API_KEY_2}
+  #   litellm_params: {model: openai/genailab-maas-gpt-5.3-codex, api_base: os.environ/GENAILAB_API_BASE, api_key: os.environ/GENAILAB_API_KEY_2}
   #   model_info: {access_groups: ["local-models"]}
   # - model_name: llama-local            # alias que usa agentIA_v2 y los agentes de TokenIO
-  #   litellm_params: {model: openai/MODELO, api_base: os.environ/GENAILAB_API_BASE, api_key: os.environ/GENAILAB_API_KEY_3}
+  #   litellm_params: {model: openai/genailab-maas-gpt-5.3-codex, api_base: os.environ/GENAILAB_API_BASE, api_key: os.environ/GENAILAB_API_KEY_3}
   #   model_info: {access_groups: ["local-models"]}
   # - model_name: llama-local
-  #   litellm_params: {model: openai/MODELO, api_base: os.environ/GENAILAB_API_BASE, api_key: os.environ/GENAILAB_API_KEY_4}
+  #   litellm_params: {model: openai/genailab-maas-gpt-5.3-codex, api_base: os.environ/GENAILAB_API_BASE, api_key: os.environ/GENAILAB_API_KEY_4}
   #   model_info: {access_groups: ["local-models"]}
   # access_groups se queda en "local-models" para no editar las keys ya emitidas (atajo de prueba).
 

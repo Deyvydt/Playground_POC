@@ -16,6 +16,55 @@ hacer los pasos clave (crear keys en Gobierno) para que aprenda.
 
 Detalle: `evidencias/2026-11-04/resultados.md`.
 
+---
+
+## Estado al 2026-11-04 — sesión en la PC de la OFICINA (retomar desde aquí)
+
+**TokenIO completo levantado y verificado con modelos LOCALES.** Falta solo la prueba
+end-to-end con TalentIA/agentIA y el switch a GenAI Lab (bloqueado por keys, ver abajo).
+
+**Lo que quedó funcionando (probado por API):**
+- 5 servicios arriba: gateway :4000, governance :8100, backend :8000, agent-lab :8200, frontend :5173.
+- `verify_gateway.py` = 4/4. Chat por el gateway → `ollama_chat/llama-3.2-3b-it:latest`, medido en `/spend/logs` (tokens/costo). El backend quedó **enrutado por el gateway** (su `.env` tiene `LLM_GATEWAY_URL`, `GOVERNANCE_URL`, `SERVICE_TOKEN`, `GATEWAY_FERNET_KEY`), así que las pruebas desde la web caen en Gobierno.
+
+**Modelos de ESTA PC (distintos a los de casa):** tiene `llama-3.2-3b-it:latest` y
+`gte-large:latest` (NO `llama3.2:3b` ni `nomic-embed-text`). El `config.yaml` del gateway
+ya apunta a esos (`llama-local`/`gpt-4o-mini`→llama-3.2-3b-it, `embed-local`→gte-large) y en
+`backend/.env` se puso `DEFAULT_CHAT_MODEL=llama-3.2-3b-it:latest`, `EMBED_MODEL=gte-large:latest`.
+Ollama debe estar corriendo antes de levantar.
+
+**Proxy TLS de TCS (clave para instalar):** Node/npm NO confían en la CA corporativa y fallan
+(`UNABLE_TO_GET_ISSUER_CERT_LOCALLY` en `npm install`; `ECONNRESET` en el `prisma generate` del
+gateway). **Fix:** `set NODE_OPTIONS=--use-system-ca` (o export) antes del `npm install` del
+frontend y antes de `start.py` del gateway. pip/python funcionan sin cambios.
+
+**GenAI Lab — BLOQUEADO (lo único pendiente de un tercero):**
+- Las keys del Excel `Peru.xlsx` (incluso las "actualizadas de la semana", teams Peru_1..3) dan
+  `401 Authentication Error – Unable to find token` en `https://genailab.tcs.in/v1`.
+- Verificado forensemente: el SHA-256 que calculamos de cada key = el `Key Hash` que devuelve el
+  proxy → las keys **llegan intactas**; simplemente **no están provisionadas** en ese proxy. Rotan
+  cada semana. No es pegado, header, TLS ni base mal escrita. **Lo tiene que resolver el admin de
+  GenAI Lab** (provisionar esas keys) o conseguir otra API key de otro proveedor.
+- El endpoint que sí responde es `/v1/chat/completions` (NO `/v1/models`, da 401 aun con key).
+- **Modelo más potente del catálogo: `genailab-maas-gpt-5.3-codex`** (otros: sonnet-4.6, gpt-5.4,
+  gemini-3.1-pro-preview, gpt-5.2/5.1-codex, gpt-4o, gpt-4o-mini). Fuente del catálogo:
+  `agentIA_v2/scripts/activation_scripts/setup_copilot_tcs.py`.
+- **Switch pre-armado:** el bloque "GenAI Lab" de `config.yaml` ya está listo con ese modelo
+  (comentado). Cuando haya keys válidas: pegarlas en `services/gateway/.env`, `probar_genailab.py`
+  para confirmar, descomentar el bloque, comentar los alias locales, reiniciar el gateway.
+- **Seguridad:** `setup_copilot_tcs.py` (repo agentIA_v2) tiene API keys hardcodeadas y pusheadas
+  al repo → avisar a ese equipo para rotarlas/sacarlas del historial.
+
+**Pendiente de HACER para la prueba end-to-end (NO necesita GenAI Lab, corre con Ollama local):**
+1. Crear 3 virtual keys en **Gobierno → Registrar agente**: `talentia-evaluador` (RR.HH.),
+   `agentia-razonamiento` (Desarrollo), `agentia-codigo` (Desarrollo).
+2. Pegarlas en `TalentIA/.env` y `agentIA_v2/.env` (ver sección 4 de esta guía).
+3. Levantar TalentIA (`:8300` + worker) y agentIA_v2 (`:8010`), correr 1 agente de cada uno,
+   verlo en Gobierno, probar pausar/reactivar (sección 5).
+- Nota: NO se commitea ni pushea en TalentIA ni agentIA_v2 (repos de otros equipos).
+
+---
+
 **Qué es qué:** TokenIO = gateway LiteLLM (:4000) + governance (:8100) + backend (:8000)
 + frontend (:5173). Los números de Gobierno salen de la base de LiteLLM, **no** de
 Langfuse. Langfuse es opcional, solo para ver trazas paso a paso (sin texto de prompts).
