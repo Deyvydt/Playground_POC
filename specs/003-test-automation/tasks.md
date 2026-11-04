@@ -46,6 +46,10 @@ Generado a partir de `plan.md`.
 - [x] D004 El webhook de alertas daba 500 con un cuerpo que no es JSON (ahora 400).
 - [x] D005 `GET /gov/notifications?limit=-1` no validaba el mínimo: en Postgres un
   LIMIT negativo da 500. Encontrado al diseñar valores límite (ahora 422).
+- [x] D006 Las llamadas del Laboratorio no aparecían en la actividad ni en el gasto:
+  agent-lab enviaba `agent_id` (número) en la metadata y LiteLLM lo reserva como columna
+  de texto, así que Postgres rechazaba la fila. Ahora se envía `tokenio_agent_id`
+  (`services/agent-lab/app/llm.py`). Encontrado al grabar la demo con servicios reales.
 
 ## Fase 7 — Técnicas de diseño y reporte en terminal
 - [x] T070 Técnicas de diseño como markers y en el reporte (`plan.md` sección 2b)

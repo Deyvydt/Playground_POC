@@ -3,6 +3,9 @@
 Guía para continuar la implementación en otra máquina. Contexto completo de la
 sesión en `RESUMEN_SESION.md`; especificación en `specs/002-llm-gateway/`.
 
+**Estado al 2026-11-04**: integración con TalentIA probada en una PC (consumo + pausa OK).
+Siguiente paso en la oficina: `specs/004-system-integration/guia-oficina.md`.
+
 **Estado al 2026-10-21**: las 8 fases están implementadas. Solo falta la
 prueba final de la Fase 8 desde otra PC de tu red (ver abajo).
 La guía de operación vigente es `services/README.md` (incluye `scripts/dev-up.ps1`).

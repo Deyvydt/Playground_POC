@@ -16,6 +16,17 @@ model_list:
       input_cost_per_token: 0.0000002
       output_cost_per_token: 0.0000004
 
+  # Alias para TalentIA: solo acepta nombres de su lista de modelos OpenAI,
+  # así que el gateway expone "gpt-4o-mini" pero responde con el modelo local.
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: ollama_chat/llama-3.2-3b-it:latest
+      api_base: os.environ/OLLAMA_API_BASE
+    model_info:
+      access_groups: ["local-models"]
+      input_cost_per_token: 0.0000002
+      output_cost_per_token: 0.0000004
+
   - model_name: embed-local
     litellm_params:
       model: ollama/gte-large:latest
@@ -25,6 +36,27 @@ model_list:
       access_groups: ["local-models"]
       input_cost_per_token: 0.00000002
       output_cost_per_token: 0
+
+  # --- GenAI Lab de TCS (solo desde la red de TCS/VPN) ---
+  # 1) .venv\Scripts\python probar_genailab.py  -> dice el mejor modelo que responde.
+  # 2) Descomentar, reemplazar MODELO por ese nombre (p. ej. genailab-maas-sonnet-4.6)
+  #    y dejar un bloque por cada key que respondió OK (mismo model_name = balanceo).
+  # 3) Comentar los alias locales "gpt-4o-mini" y "llama-local" de arriba y reiniciar el gateway.
+  #    Los clientes no cambian nada: siguen pidiendo "gpt-4o-mini" / "llama-local".
+  #    Sin input/output_cost_per_token: LiteLLM usa el precio real si conoce el modelo.
+  # - model_name: gpt-4o-mini            # alias que usa TalentIA
+  #   litellm_params: {model: openai/MODELO, api_base: os.environ/GENAILAB_API_BASE, api_key: os.environ/GENAILAB_API_KEY_1}
+  #   model_info: {access_groups: ["local-models"]}
+  # - model_name: gpt-4o-mini
+  #   litellm_params: {model: openai/MODELO, api_base: os.environ/GENAILAB_API_BASE, api_key: os.environ/GENAILAB_API_KEY_2}
+  #   model_info: {access_groups: ["local-models"]}
+  # - model_name: llama-local            # alias que usa agentIA_v2 y los agentes de TokenIO
+  #   litellm_params: {model: openai/MODELO, api_base: os.environ/GENAILAB_API_BASE, api_key: os.environ/GENAILAB_API_KEY_3}
+  #   model_info: {access_groups: ["local-models"]}
+  # - model_name: llama-local
+  #   litellm_params: {model: openai/MODELO, api_base: os.environ/GENAILAB_API_BASE, api_key: os.environ/GENAILAB_API_KEY_4}
+  #   model_info: {access_groups: ["local-models"]}
+  # access_groups se queda en "local-models" para no editar las keys ya emitidas (atajo de prueba).
 
   # --- Proveedores en la nube (descomentar cuando haya API keys reales en .env) ---
   # Dos deployments con el mismo model_name = balanceo de carga entre dos keys.
